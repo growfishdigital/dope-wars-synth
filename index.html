@@ -13,33 +13,19 @@
   button { font-family: inherit; }
   ::-webkit-scrollbar { width: 0; height: 0; }
 </style>
-<template id="__bundler_thumbnail">
-  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0" stop-color="#ff2ea6"/>
-        <stop offset="0.5" stop-color="#ff7e3d"/>
-        <stop offset="1" stop-color="#2a0d4e"/>
-      </linearGradient>
-    </defs>
-    <rect width="100" height="100" fill="url(#g)"/>
-    <text x="50" y="48" font-family="Syne, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">DOPE</text>
-    <text x="50" y="64" font-family="Syne, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">WARS</text>
-  </svg>
-</template>
 </head>
 <body>
 <div id="proto-root"></div>
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 
 <script type="text/babel">
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-tokens.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // tokens.jsx
 // ═══════════════════════════════════════════════════════════
 // Miami vaporwave design tokens
@@ -112,9 +98,9 @@ Object.assign(window, { DW, DW_DRUGS, DW_CITIES });
 // ═══════════════════════════════════════════════════════════
 
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-locations.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // locations.jsx
 // ═══════════════════════════════════════════════════════════
 // Painterly SVG illustrations for each city — used as phone wallpaper / backdrop.
@@ -651,9 +637,9 @@ Object.assign(window, { CityScene, DW_SCENES, MiamiScene, NYCScene, LAScene, Ber
 // ═══════════════════════════════════════════════════════════
 
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-store.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 // proto-store.jsx — game state, price engine, events, messages
 // ═══════════════════════════════════════════════════════════
@@ -1143,9 +1129,9 @@ Object.assign(window, {
 });
 
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-audio.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 // proto-audio.jsx — WebAudio: synthwave ambient + UI sfx
 // ═══════════════════════════════════════════════════════════
@@ -1355,9 +1341,9 @@ const DWAudio = (() => {
 Object.assign(window, { DWAudio });
 
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-ui.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 // proto-ui.jsx — HUD, buttons, sheets, number animators
 // ═══════════════════════════════════════════════════════════
@@ -1753,9 +1739,9 @@ Object.assign(window, {
 });
 
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-screens.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 // proto-screens.jsx — all game screens
 // ═══════════════════════════════════════════════════════════
@@ -3113,15 +3099,15 @@ Object.assign(window, {
 });
 
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // proto-app.jsx
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 // proto-app.jsx — router, iPhone frame shell, Tweaks panel
 // ═══════════════════════════════════════════════════════════
 
 const TWEAKS = /*EDITMODE-BEGIN*/{
-  "marketLayout": "grid",
+  "marketLayout": "list",
   "mapVariant": "stylized",
   "showInIphoneFrame": true,
   "muted": false
@@ -3473,7 +3459,6 @@ Object.assign(window, { PhoneFrame });
 // Mount
 const root = ReactDOM.createRoot(document.getElementById('proto-root'));
 root.render(<ProtoApp/>);
-
 
 </script>
 </body>
