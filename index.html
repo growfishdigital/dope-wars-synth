@@ -1,0 +1,3480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dope Wars — Interactive Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #0a0118; font-family: 'Space Grotesk', system-ui, sans-serif; }
+  * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+</style>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" stop-color="#ff2ea6"/>
+        <stop offset="0.5" stop-color="#ff7e3d"/>
+        <stop offset="1" stop-color="#2a0d4e"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" fill="url(#g)"/>
+    <text x="50" y="48" font-family="Syne, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">DOPE</text>
+    <text x="50" y="64" font-family="Syne, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">WARS</text>
+  </svg>
+</template>
+</head>
+<body>
+<div id="proto-root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+
+// ═══════════════════════════════════════════════════════════
+// proto-tokens.jsx
+// ═══════════════════════════════════════════════════════════
+// tokens.jsx
+// ═══════════════════════════════════════════════════════════
+// Miami vaporwave design tokens
+const DW = {
+  // Core palette — hot pink, cyan, deep night, sunset gradients
+  ink: '#0a0118',          // darkest night
+  night: '#14052a',        // deep purple-black
+  violet: '#2a0d4e',       // grape
+  magenta: '#ff2ea6',      // hot pink / primary
+  magentaHot: '#ff47b3',
+  cyan: '#00e5ff',         // electric cyan / secondary
+  cyanIce: '#7cf7ff',
+  lime: '#c7ff1f',         // acid accent (spike/hot item)
+  sunset: '#ff7e3d',       // orange
+  gold: '#ffcf3a',         // warning
+  sand: '#ffe5d9',         // cream (soft text on dark)
+  off: '#f4f0ff',          // near-white
+  danger: '#ff3366',
+  good: '#39ffb0',
+
+  // Gradients
+  gradSunset: 'linear-gradient(180deg, #ff47b3 0%, #ff7e3d 55%, #ffcf3a 100%)',
+  gradOcean:  'linear-gradient(180deg, #1b0a3e 0%, #3e1780 40%, #ff2ea6 100%)',
+  gradNight:  'linear-gradient(180deg, #0a0118 0%, #1b0a3e 60%, #3e1780 100%)',
+  gradScreen: 'linear-gradient(160deg, #14052a 0%, #2a0d4e 100%)',
+  gradChrome: 'linear-gradient(180deg, #fff 0%, #e0d8ff 40%, #a89cd4 60%, #fff 100%)',
+
+  // Type
+  display: '"Monument Extended", "Syne", system-ui, sans-serif',
+  heading: '"Syne", system-ui, sans-serif',
+  body: '"Space Grotesk", system-ui, sans-serif',
+  mono: '"Space Mono", ui-monospace, monospace',
+  pixel: '"VT323", ui-monospace, monospace',
+
+  // Shadows / glows
+  glowMagenta: '0 0 24px rgba(255,46,166,0.6), 0 0 48px rgba(255,46,166,0.3)',
+  glowCyan: '0 0 24px rgba(0,229,255,0.6), 0 0 48px rgba(0,229,255,0.3)',
+  glowLime: '0 0 16px rgba(199,255,31,0.6)',
+  innerCard: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.4)',
+};
+
+// Drug roster — original + modern additions
+const DW_DRUGS = [
+  { id: 'weed',     name: 'Weed',      emoji: '🌿', min: 300,   max: 900,   tier: 'low',    tag: 'green' },
+  { id: 'acid',     name: 'Acid',      emoji: '💊', min: 1000,  max: 4500,  tier: 'mid',    tag: 'rainbow' },
+  { id: 'shrooms',  name: 'Shrooms',   emoji: '🍄', min: 600,   max: 1800,  tier: 'mid',    tag: 'earth' },
+  { id: 'mdma',     name: 'Molly',     emoji: '💎', min: 900,   max: 3200,  tier: 'mid',    tag: 'cyan' },
+  { id: 'coke',     name: 'Cocaine',   emoji: '❄️', min: 12000, max: 28000, tier: 'high',   tag: 'white' },
+  { id: 'ket',      name: 'Ketamine',  emoji: '🧪', min: 1500,  max: 4200,  tier: 'mid',    tag: 'pink' },
+  { id: 'xan',      name: 'Xanax',     emoji: '🪄', min: 80,    max: 400,   tier: 'low',    tag: 'bar' },
+  { id: 'heroin',   name: 'Heroin',    emoji: '🥄', min: 5000,  max: 14000, tier: 'high',   tag: 'brown' },
+  { id: 'fent',     name: 'Fentanyl',  emoji: '☠️', min: 20000, max: 90000, tier: 'high',   tag: 'skull' },
+  { id: 'ludes',    name: 'Ludes',     emoji: '💤', min: 10,    max: 60,    tier: 'low',    tag: 'retro' },
+  { id: 'carts',    name: 'THC Carts', emoji: '🪫', min: 40,    max: 180,   tier: 'low',    tag: 'vape' },
+  { id: 'ozempic',  name: 'Ozempic',   emoji: '💉', min: 900,   max: 2400,  tier: 'mid',    tag: 'chem' },
+];
+
+const DW_CITIES = [
+  { id: 'nyc',    name: 'New York',    code: 'NYC', tz: 'EST',  temp: 34,  mood: 'neon rain',       accent: '#ff2ea6' },
+  { id: 'la',     name: 'Los Angeles', code: 'LAX', tz: 'PST',  temp: 72,  mood: 'palm shadows',    accent: '#ff7e3d' },
+  { id: 'mia',    name: 'Miami',       code: 'MIA', tz: 'EST',  temp: 86,  mood: 'chrome sunset',   accent: '#ff47b3' },
+  { id: 'ber',    name: 'Berlin',      code: 'BER', tz: 'CET',  temp: 48,  mood: 'concrete rave',   accent: '#00e5ff' },
+  { id: 'tyo',    name: 'Tokyo',       code: 'HND', tz: 'JST',  temp: 58,  mood: 'shibuya drift',   accent: '#c7ff1f' },
+  { id: 'mex',    name: 'Mexico City', code: 'MEX', tz: 'CST',  temp: 68,  mood: 'smoke & gold',    accent: '#ffcf3a' },
+];
+
+Object.assign(window, { DW, DW_DRUGS, DW_CITIES });
+
+
+// ═══════════════════════════════════════════════════════════
+
+
+// ═══════════════════════════════════════════════════════════
+// proto-locations.jsx
+// ═══════════════════════════════════════════════════════════
+// locations.jsx
+// ═══════════════════════════════════════════════════════════
+// Painterly SVG illustrations for each city — used as phone wallpaper / backdrop.
+// Each one is a fullscreen-portrait composition (viewBox 402x874 to match iPhone).
+
+function MiamiScene() {
+  return (
+    <svg viewBox="0 0 402 874" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+      <defs>
+        <linearGradient id="mia-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2a0b4a"/>
+          <stop offset="0.35" stopColor="#ff2ea6"/>
+          <stop offset="0.6" stopColor="#ff7e3d"/>
+          <stop offset="0.85" stopColor="#ffcf3a"/>
+          <stop offset="1" stopColor="#ff47b3"/>
+        </linearGradient>
+        <radialGradient id="mia-sun" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#fff1cc"/>
+          <stop offset="0.5" stopColor="#ffcf3a"/>
+          <stop offset="1" stopColor="#ff7e3d" stopOpacity="0"/>
+        </radialGradient>
+        <linearGradient id="mia-water" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ff47b3"/>
+          <stop offset="1" stopColor="#1a0540"/>
+        </linearGradient>
+      </defs>
+      {/* sky */}
+      <rect width="402" height="600" fill="url(#mia-sky)"/>
+      {/* sun */}
+      <circle cx="201" cy="360" r="130" fill="url(#mia-sun)"/>
+      <g stroke="#2a0b4a" strokeWidth="2" opacity="0.85">
+        <line x1="80" y1="400" x2="322" y2="400"/>
+        <line x1="70" y1="420" x2="332" y2="420"/>
+        <line x1="60" y1="440" x2="342" y2="440"/>
+        <line x1="50" y1="460" x2="352" y2="460"/>
+      </g>
+      {/* distant buildings */}
+      <g opacity="0.55">
+        <rect x="10" y="470" width="26" height="130" fill="#6b1d7a"/>
+        <rect x="42" y="440" width="30" height="160" fill="#7a1f8a"/>
+        <rect x="78" y="460" width="22" height="140" fill="#5a1870"/>
+        <rect x="320" y="450" width="28" height="150" fill="#7a1f8a"/>
+        <rect x="354" y="470" width="36" height="130" fill="#5a1870"/>
+      </g>
+      {/* main skyline */}
+      <g>
+        <rect x="0" y="500" width="60" height="100" fill="#1a0540"/>
+        <rect x="60" y="470" width="44" height="130" fill="#2a0b4a"/>
+        <rect x="104" y="510" width="30" height="90" fill="#1a0540"/>
+        <rect x="134" y="450" width="50" height="150" fill="#2a0b4a"/>
+        <rect x="184" y="490" width="36" height="110" fill="#14052a"/>
+        <rect x="220" y="430" width="56" height="170" fill="#2a0b4a"/>
+        <rect x="276" y="480" width="30" height="120" fill="#1a0540"/>
+        <rect x="306" y="460" width="40" height="140" fill="#2a0b4a"/>
+        <rect x="346" y="500" width="56" height="100" fill="#14052a"/>
+        {/* palm left */}
+        <rect x="28" y="380" width="6" height="220" fill="#14052a"/>
+        <g fill="#14052a">
+          <path d="M31 380 Q 10 360 -5 375 Q 15 355 31 380"/>
+          <path d="M31 380 Q 52 360 70 375 Q 50 355 31 380"/>
+          <path d="M31 380 Q 5 385 -10 405 Q 18 378 31 380"/>
+          <path d="M31 380 Q 58 385 75 400 Q 48 378 31 380"/>
+          <path d="M31 380 Q 20 350 22 330 Q 32 360 31 380"/>
+        </g>
+        {/* palm right */}
+        <rect x="368" y="360" width="7" height="240" fill="#14052a"/>
+        <g fill="#14052a">
+          <path d="M371 360 Q 348 340 332 356 Q 356 332 371 360"/>
+          <path d="M371 360 Q 396 340 412 358 Q 392 330 371 360"/>
+          <path d="M371 360 Q 344 368 328 388 Q 360 360 371 360"/>
+          <path d="M371 360 Q 400 368 414 386 Q 390 360 371 360"/>
+          <path d="M371 360 Q 362 330 368 312 Q 372 340 371 360"/>
+        </g>
+        {/* windows lit */}
+        <g fill="#ffcf3a" opacity="0.9">
+          <rect x="70" y="480" width="3" height="3"/><rect x="76" y="480" width="3" height="3"/>
+          <rect x="70" y="492" width="3" height="3"/><rect x="82" y="498" width="3" height="3"/>
+          <rect x="142" y="460" width="3" height="3"/><rect x="148" y="470" width="3" height="3"/>
+          <rect x="160" y="485" width="3" height="3"/><rect x="170" y="500" width="3" height="3"/>
+          <rect x="230" y="442" width="3" height="3"/><rect x="240" y="455" width="3" height="3"/>
+          <rect x="252" y="465" width="3" height="3"/><rect x="262" y="478" width="3" height="3"/>
+          <rect x="312" y="475" width="3" height="3"/><rect x="322" y="485" width="3" height="3"/>
+        </g>
+        <g fill="#ff47b3" opacity="0.8">
+          <rect x="90" y="490" width="3" height="3"/><rect x="148" y="490" width="3" height="3"/>
+          <rect x="240" y="470" width="3" height="3"/><rect x="310" y="490" width="3" height="3"/>
+        </g>
+      </g>
+      {/* water */}
+      <rect x="0" y="600" width="402" height="274" fill="url(#mia-water)"/>
+      {/* sun reflection */}
+      <g opacity="0.45" fill="#ffcf3a">
+        <rect x="180" y="608" width="42" height="3"/>
+        <rect x="170" y="620" width="62" height="4"/>
+        <rect x="160" y="636" width="82" height="4"/>
+        <rect x="150" y="656" width="102" height="5"/>
+        <rect x="140" y="680" width="122" height="5"/>
+        <rect x="130" y="710" width="142" height="6"/>
+        <rect x="120" y="744" width="162" height="7"/>
+      </g>
+      {/* grain */}
+      <g opacity="0.08">
+        {Array.from({length: 120}).map((_, i) => (
+          <circle key={i} cx={(i*37)%402} cy={(i*61)%874} r="0.7" fill="#fff"/>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+function NYCScene() {
+  return (
+    <svg viewBox="0 0 402 874" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+      <defs>
+        <linearGradient id="nyc-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#0a0118"/>
+          <stop offset="0.5" stopColor="#2a0d4e"/>
+          <stop offset="1" stopColor="#ff2ea6"/>
+        </linearGradient>
+        <linearGradient id="nyc-fog" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2a0d4e" stopOpacity="0"/>
+          <stop offset="1" stopColor="#ff2ea6" stopOpacity="0.35"/>
+        </linearGradient>
+      </defs>
+      <rect width="402" height="874" fill="url(#nyc-sky)"/>
+      {/* moon */}
+      <circle cx="320" cy="170" r="44" fill="#f4f0ff" opacity="0.95"/>
+      <circle cx="332" cy="160" r="40" fill="#2a0d4e"/>
+      {/* clouds */}
+      <g fill="#ff47b3" opacity="0.25">
+        <ellipse cx="80" cy="180" rx="70" ry="10"/>
+        <ellipse cx="200" cy="230" rx="110" ry="8"/>
+      </g>
+      {/* far skyline */}
+      <g opacity="0.35" fill="#1b0540">
+        <rect x="0" y="480" width="40" height="200"/>
+        <rect x="38" y="460" width="26" height="220"/>
+        <rect x="62" y="500" width="34" height="180"/>
+        <rect x="94" y="450" width="30" height="230"/>
+        <rect x="124" y="470" width="40" height="210"/>
+        <rect x="162" y="440" width="36" height="240"/>
+        <rect x="196" y="480" width="26" height="200"/>
+        <rect x="220" y="430" width="34" height="250"/>
+        <rect x="252" y="470" width="30" height="210"/>
+        <rect x="280" y="450" width="40" height="230"/>
+        <rect x="318" y="480" width="34" height="200"/>
+        <rect x="350" y="460" width="52" height="220"/>
+      </g>
+      {/* main skyscrapers */}
+      <g fill="#0a0118">
+        <rect x="0" y="440" width="50" height="300"/>
+        <rect x="50" y="380" width="40" height="360"/>
+        <rect x="90" y="420" width="30" height="320"/>
+        <rect x="120" y="340" width="54" height="400"/>
+        <polygon points="147,340 174,340 174,310 160,290 147,310"/>
+        <rect x="174" y="400" width="32" height="340"/>
+        <rect x="206" y="360" width="50" height="380"/>
+        <rect x="256" y="420" width="34" height="320"/>
+        <rect x="290" y="370" width="44" height="370"/>
+        <polygon points="312,370 316,280 320,370"/>
+        <rect x="334" y="410" width="30" height="330"/>
+        <rect x="364" y="440" width="38" height="300"/>
+      </g>
+      {/* warm windows */}
+      <g fill="#ffcf3a">
+        {Array.from({length: 70}).map((_, i) => {
+          const x = 4 + (i*11) % 394;
+          const y = 400 + ((i*31) % 330);
+          const w = 2 + (i%2);
+          return <rect key={i} x={x} y={y} width={w} height="2.5" opacity={0.5 + (i%3)*0.15}/>;
+        })}
+      </g>
+      <g fill="#00e5ff">
+        {Array.from({length: 24}).map((_, i) => {
+          const x = 8 + (i*19) % 390;
+          const y = 420 + ((i*47) % 280);
+          return <rect key={i} x={x} y={y} width="2" height="2" opacity="0.8"/>;
+        })}
+      </g>
+      {/* neon sign */}
+      <g>
+        <rect x="90" y="540" width="70" height="14" fill="#ff2ea6" opacity="0.9"/>
+        <text x="94" y="551" fontFamily="VT323, monospace" fontSize="13" fill="#fff">OPEN 24HRS</text>
+      </g>
+      {/* rain streaks */}
+      <g stroke="#ff47b3" strokeWidth="0.6" opacity="0.25">
+        {Array.from({length: 40}).map((_, i) => {
+          const x = (i*23) % 402;
+          const y = (i*37) % 874;
+          return <line key={i} x1={x} y1={y} x2={x-6} y2={y+18}/>;
+        })}
+      </g>
+      {/* foreground street glow */}
+      <rect x="0" y="740" width="402" height="134" fill="url(#nyc-fog)"/>
+      {/* puddle reflections */}
+      <g opacity="0.45" fill="#ffcf3a">
+        <rect x="40" y="800" width="80" height="2"/>
+        <rect x="160" y="820" width="120" height="2"/>
+        <rect x="300" y="810" width="60" height="2"/>
+      </g>
+    </svg>
+  );
+}
+
+function LAScene() {
+  return (
+    <svg viewBox="0 0 402 874" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+      <defs>
+        <linearGradient id="la-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3e1780"/>
+          <stop offset="0.4" stopColor="#ff47b3"/>
+          <stop offset="0.75" stopColor="#ff7e3d"/>
+          <stop offset="1" stopColor="#ffcf3a"/>
+        </linearGradient>
+      </defs>
+      <rect width="402" height="700" fill="url(#la-sky)"/>
+      {/* sun */}
+      <circle cx="280" cy="400" r="90" fill="#fff1cc" opacity="0.9"/>
+      {/* mountain ridge */}
+      <path d="M0 520 L40 500 L80 520 L120 480 L170 510 L210 470 L260 500 L310 460 L360 490 L402 480 L402 700 L0 700 Z" fill="#5a1870" opacity="0.85"/>
+      <path d="M0 560 L60 540 L110 560 L160 520 L220 550 L280 520 L340 550 L402 540 L402 700 L0 700 Z" fill="#3e1780"/>
+      {/* palm trees silhouette cluster */}
+      {[50, 110, 180, 260, 330].map((x, i) => (
+        <g key={i} fill="#1a0540">
+          <rect x={x-2} y="380" width="4" height="240"/>
+          <path d={`M${x} 380 Q ${x-22} 362 ${x-38} 376 Q ${x-16} 356 ${x} 380`}/>
+          <path d={`M${x} 380 Q ${x+22} 362 ${x+38} 376 Q ${x+16} 356 ${x} 380`}/>
+          <path d={`M${x} 380 Q ${x-20} 386 ${x-36} 402 Q ${x-14} 380 ${x} 380`}/>
+          <path d={`M${x} 380 Q ${x+20} 386 ${x+36} 402 Q ${x+14} 380 ${x} 380`}/>
+          <path d={`M${x} 380 Q ${x-2} 356 ${x-4} 340 Q ${x+1} 360 ${x} 380`}/>
+        </g>
+      ))}
+      {/* low buildings */}
+      <g fill="#1a0540">
+        <rect x="0" y="580" width="80" height="120"/>
+        <rect x="78" y="560" width="50" height="140"/>
+        <rect x="128" y="590" width="60" height="110"/>
+        <rect x="188" y="570" width="90" height="130"/>
+        <rect x="278" y="600" width="40" height="100"/>
+        <rect x="318" y="570" width="84" height="130"/>
+      </g>
+      {/* HOLLYWOOD-style letters */}
+      <g fill="#f4f0ff" fontFamily="Monument Extended, Syne, sans-serif" fontSize="22" fontWeight="800" letterSpacing="4">
+        <text x="66" y="504">VENICE</text>
+      </g>
+      {/* road */}
+      <rect x="0" y="700" width="402" height="174" fill="#14052a"/>
+      <g stroke="#ff47b3" strokeWidth="3" strokeDasharray="22 18" opacity="0.9">
+        <line x1="200" y1="710" x2="200" y2="874"/>
+      </g>
+      {/* road edge glow */}
+      <rect x="0" y="700" width="402" height="4" fill="#ff7e3d" opacity="0.8"/>
+      {/* palm shadow on ground */}
+      <g opacity="0.3" fill="#ff47b3">
+        <ellipse cx="50" cy="700" rx="20" ry="3"/>
+        <ellipse cx="180" cy="700" rx="22" ry="3"/>
+        <ellipse cx="330" cy="700" rx="20" ry="3"/>
+      </g>
+      {/* windows */}
+      <g fill="#ffcf3a">
+        <rect x="10" y="610" width="3" height="3"/>
+        <rect x="30" y="620" width="3" height="3"/>
+        <rect x="90" y="590" width="3" height="3"/>
+        <rect x="200" y="600" width="3" height="3"/>
+        <rect x="230" y="620" width="3" height="3"/>
+        <rect x="340" y="590" width="3" height="3"/>
+      </g>
+    </svg>
+  );
+}
+
+function BerlinScene() {
+  return (
+    <svg viewBox="0 0 402 874" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+      <defs>
+        <linearGradient id="ber-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#0a0118"/>
+          <stop offset="0.7" stopColor="#14052a"/>
+          <stop offset="1" stopColor="#2a0d4e"/>
+        </linearGradient>
+        <radialGradient id="ber-spot" cx="0.5" cy="0" r="0.8">
+          <stop offset="0" stopColor="#00e5ff" stopOpacity="0.35"/>
+          <stop offset="1" stopColor="#00e5ff" stopOpacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="402" height="874" fill="url(#ber-sky)"/>
+      <rect width="402" height="500" fill="url(#ber-spot)"/>
+      {/* TV Tower */}
+      <g fill="#14052a">
+        <rect x="196" y="100" width="10" height="520"/>
+        <circle cx="201" cy="240" r="38" fill="#1b0540" stroke="#00e5ff" strokeWidth="1.2"/>
+        <polygon points="199,100 203,100 204,60 200,40 198,60"/>
+        <rect x="200" y="38" width="2" height="10" fill="#ff2ea6"/>
+      </g>
+      {/* ball highlights */}
+      <g fill="#00e5ff" opacity="0.6">
+        <rect x="185" y="228" width="30" height="1.5"/>
+        <rect x="185" y="240" width="30" height="1.5"/>
+        <rect x="185" y="252" width="30" height="1.5"/>
+      </g>
+      {/* concrete blocks */}
+      <g fill="#1b0540">
+        <rect x="0" y="520" width="140" height="240"/>
+        <rect x="260" y="520" width="142" height="240"/>
+        <rect x="0" y="440" width="70" height="320"/>
+        <rect x="332" y="440" width="70" height="320"/>
+      </g>
+      {/* graffiti / color block walls */}
+      <g>
+        <rect x="20" y="620" width="60" height="30" fill="#ff2ea6"/>
+        <rect x="20" y="650" width="60" height="30" fill="#00e5ff"/>
+        <rect x="20" y="680" width="60" height="30" fill="#c7ff1f"/>
+        <text x="28" y="705" fontFamily="VT323, monospace" fontSize="18" fill="#0a0118">BERGHAIN</text>
+      </g>
+      {/* spray tag */}
+      <g stroke="#ff2ea6" strokeWidth="3" fill="none" opacity="0.95">
+        <path d="M290 610 Q 310 590 330 610 L 340 620 M 350 600 L 370 620"/>
+      </g>
+      {/* windows grid */}
+      <g fill="#00e5ff" opacity="0.55">
+        {Array.from({length: 24}).map((_, i) => {
+          const row = Math.floor(i / 6);
+          const col = i % 6;
+          return <rect key={i} x={275 + col*18} y={540 + row*32} width="8" height="14"/>;
+        })}
+      </g>
+      <g fill="#ffcf3a" opacity="0.7">
+        {Array.from({length: 18}).map((_, i) => {
+          const row = Math.floor(i / 6);
+          const col = i % 6;
+          return <rect key={i} x={8 + col*18} y={460 + row*28} width="6" height="10"/>;
+        })}
+      </g>
+      {/* street */}
+      <rect x="0" y="760" width="402" height="114" fill="#0a0118"/>
+      <g stroke="#c7ff1f" strokeWidth="1" opacity="0.5" strokeDasharray="12 8">
+        <line x1="0" y1="790" x2="402" y2="790"/>
+      </g>
+      {/* tram wire */}
+      <line x1="0" y1="520" x2="402" y2="520" stroke="#2a0d4e" strokeWidth="0.5"/>
+      <line x1="0" y1="480" x2="402" y2="480" stroke="#2a0d4e" strokeWidth="0.5"/>
+      {/* laser */}
+      <line x1="60" y1="874" x2="340" y2="140" stroke="#ff2ea6" strokeWidth="1" opacity="0.5"/>
+      <line x1="340" y1="874" x2="60" y2="140" stroke="#00e5ff" strokeWidth="1" opacity="0.4"/>
+    </svg>
+  );
+}
+
+function TokyoScene() {
+  return (
+    <svg viewBox="0 0 402 874" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+      <defs>
+        <linearGradient id="tyo-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#0a0118"/>
+          <stop offset="0.5" stopColor="#2a0d4e"/>
+          <stop offset="1" stopColor="#5a0a40"/>
+        </linearGradient>
+      </defs>
+      <rect width="402" height="874" fill="url(#tyo-sky)"/>
+      {/* moon */}
+      <circle cx="70" cy="130" r="36" fill="#ffe5d9" opacity="0.9"/>
+      {/* buildings packed tight */}
+      <g fill="#0a0118">
+        <rect x="0" y="280" width="46" height="500"/>
+        <rect x="46" y="240" width="34" height="540"/>
+        <rect x="80" y="310" width="40" height="470"/>
+        <rect x="120" y="200" width="52" height="580"/>
+        <rect x="172" y="260" width="36" height="520"/>
+        <rect x="208" y="220" width="44" height="560"/>
+        <rect x="252" y="290" width="32" height="490"/>
+        <rect x="284" y="240" width="48" height="540"/>
+        <rect x="332" y="300" width="36" height="480"/>
+        <rect x="368" y="260" width="34" height="520"/>
+      </g>
+      {/* vertical neon kanji signs — placeholder glyphs */}
+      {[
+        { x: 14, y: 300, color: '#ff2ea6', chars: ['東','京','酒'] },
+        { x: 130, y: 230, color: '#00e5ff', chars: ['夜','食','堂'] },
+        { x: 220, y: 250, color: '#c7ff1f', chars: ['薬','局'] },
+        { x: 296, y: 270, color: '#ffcf3a', chars: ['渋','谷'] },
+      ].map((s, i) => (
+        <g key={i}>
+          <rect x={s.x} y={s.y} width="18" height={s.chars.length*26 + 10} fill="#14052a" stroke={s.color} strokeWidth="1"/>
+          {s.chars.map((c, j) => (
+            <text key={j} x={s.x+9} y={s.y + 22 + j*26} textAnchor="middle"
+              fontFamily="Noto Sans JP, system-ui" fontSize="18" fontWeight="700" fill={s.color}>{c}</text>
+          ))}
+        </g>
+      ))}
+      {/* horizontal signs */}
+      <rect x="54" y="420" width="24" height="80" fill="#14052a" stroke="#ff47b3" strokeWidth="1"/>
+      <rect x="62" y="430" width="8" height="8" fill="#ff47b3"/>
+      <rect x="62" y="444" width="8" height="8" fill="#ff47b3"/>
+      <rect x="62" y="458" width="8" height="8" fill="#ff47b3"/>
+      {/* windows warm */}
+      <g fill="#ffcf3a">
+        {Array.from({length: 80}).map((_, i) => {
+          const x = 4 + (i*13) % 396;
+          const y = 320 + ((i*41) % 380);
+          const size = 1 + (i%2);
+          return <rect key={i} x={x} y={y} width={size} height={size+0.5} opacity={0.6 + (i%3)*0.12}/>;
+        })}
+      </g>
+      <g fill="#00e5ff">
+        {Array.from({length: 40}).map((_, i) => (
+          <rect key={i} x={(i*19)%398} y={280 + (i*47)%420} width="1.2" height="1.2" opacity="0.85"/>
+        ))}
+      </g>
+      {/* telephone poles */}
+      <g stroke="#14052a" strokeWidth="2" fill="none">
+        <line x1="100" y1="500" x2="100" y2="820"/>
+        <line x1="300" y1="500" x2="300" y2="820"/>
+        <line x1="0" y1="560" x2="402" y2="540"/>
+        <line x1="0" y1="580" x2="402" y2="560"/>
+        <line x1="0" y1="600" x2="402" y2="580"/>
+      </g>
+      {/* street wet */}
+      <rect x="0" y="780" width="402" height="94" fill="#1a0540"/>
+      <g fill="#ff2ea6" opacity="0.4">
+        <rect x="30" y="820" width="40" height="1.5"/>
+        <rect x="100" y="810" width="60" height="1.5"/>
+        <rect x="200" y="830" width="80" height="1.5"/>
+        <rect x="310" y="820" width="50" height="1.5"/>
+      </g>
+    </svg>
+  );
+}
+
+function MexicoCityScene() {
+  return (
+    <svg viewBox="0 0 402 874" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+      <defs>
+        <linearGradient id="mex-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2a0b4a"/>
+          <stop offset="0.4" stopColor="#ff47b3"/>
+          <stop offset="0.75" stopColor="#ff7e3d"/>
+          <stop offset="1" stopColor="#ffcf3a"/>
+        </linearGradient>
+      </defs>
+      <rect width="402" height="700" fill="url(#mex-sky)"/>
+      {/* sun */}
+      <circle cx="140" cy="320" r="70" fill="#fff1cc" opacity="0.95"/>
+      {/* distant volcano */}
+      <path d="M0 450 L 80 380 L 120 410 L 160 360 L 200 340 L 240 370 L 280 350 L 340 400 L 402 380 L 402 700 L 0 700 Z" fill="#5a1870"/>
+      <path d="M180 340 L200 328 L215 338" fill="#f4f0ff" opacity="0.8"/>
+      {/* pyramid silhouette */}
+      <g fill="#1a0540">
+        <polygon points="60,520 140,520 130,480 70,480"/>
+        <polygon points="70,480 130,480 120,440 80,440"/>
+        <polygon points="80,440 120,440 112,410 88,410"/>
+        <polygon points="88,410 112,410 100,390"/>
+      </g>
+      {/* colorful buildings (Coyoacán palette) */}
+      <g>
+        <rect x="0" y="520" width="70" height="180" fill="#ff2ea6"/>
+        <rect x="70" y="540" width="60" height="160" fill="#c7ff1f"/>
+        <rect x="130" y="510" width="80" height="190" fill="#ff7e3d"/>
+        <rect x="210" y="530" width="56" height="170" fill="#00e5ff"/>
+        <rect x="266" y="510" width="70" height="190" fill="#ffcf3a"/>
+        <rect x="336" y="540" width="66" height="160" fill="#ff47b3"/>
+      </g>
+      {/* window cutouts */}
+      <g fill="#1a0540">
+        <rect x="14" y="560" width="14" height="18"/>
+        <rect x="34" y="560" width="14" height="18"/>
+        <rect x="14" y="600" width="14" height="18"/>
+        <rect x="34" y="600" width="14" height="18"/>
+        <rect x="82" y="580" width="14" height="18"/>
+        <rect x="102" y="580" width="14" height="18"/>
+        <rect x="145" y="550" width="16" height="22"/>
+        <rect x="170" y="550" width="16" height="22"/>
+        <rect x="145" y="600" width="16" height="22"/>
+        <rect x="170" y="600" width="16" height="22"/>
+        <rect x="222" y="570" width="14" height="18"/>
+        <rect x="242" y="570" width="14" height="18"/>
+        <rect x="280" y="550" width="14" height="22"/>
+        <rect x="304" y="550" width="14" height="22"/>
+        <rect x="280" y="600" width="14" height="22"/>
+        <rect x="304" y="600" width="14" height="22"/>
+        <rect x="350" y="580" width="14" height="18"/>
+        <rect x="374" y="580" width="14" height="18"/>
+      </g>
+      {/* bunting / papel picado */}
+      <g>
+        <path d="M0 460 Q 100 490 200 460 T 402 460" stroke="#f4f0ff" strokeWidth="1" fill="none"/>
+        {Array.from({length: 14}).map((_, i) => {
+          const colors = ['#ff2ea6','#c7ff1f','#00e5ff','#ffcf3a','#ff7e3d'];
+          return <rect key={i} x={i*30} y={464 + Math.sin(i)*4} width="20" height="16" fill={colors[i%5]}/>;
+        })}
+      </g>
+      {/* cathedral */}
+      <g fill="#1a0540">
+        <rect x="172" y="480" width="58" height="60"/>
+        <polygon points="172,480 230,480 220,460 182,460"/>
+        <rect x="178" y="440" width="10" height="40"/>
+        <rect x="214" y="440" width="10" height="40"/>
+        <circle cx="201" cy="478" r="5" fill="#ffcf3a"/>
+      </g>
+      <g fill="#ffcf3a">
+        <rect x="180" y="444" width="6" height="6"/>
+        <rect x="216" y="444" width="6" height="6"/>
+      </g>
+      {/* street */}
+      <rect x="0" y="700" width="402" height="174" fill="#14052a"/>
+      <g fill="#ff2ea6" opacity="0.4">
+        <rect x="20" y="740" width="80" height="2"/>
+        <rect x="180" y="760" width="120" height="2"/>
+      </g>
+    </svg>
+  );
+}
+
+const DW_SCENES = {
+  mia: MiamiScene,
+  nyc: NYCScene,
+  la: LAScene,
+  ber: BerlinScene,
+  tyo: TokyoScene,
+  mex: MexicoCityScene,
+};
+
+function CityScene({ id, style = {} }) {
+  const Cmp = DW_SCENES[id] || MiamiScene;
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', ...style }}>
+      <Cmp />
+    </div>
+  );
+}
+
+Object.assign(window, { CityScene, DW_SCENES, MiamiScene, NYCScene, LAScene, BerlinScene, TokyoScene, MexicoCityScene });
+
+
+// ═══════════════════════════════════════════════════════════
+
+
+// ═══════════════════════════════════════════════════════════
+// proto-store.jsx
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// proto-store.jsx — game state, price engine, events, messages
+// ═══════════════════════════════════════════════════════════
+
+const DW_CONFIG = {
+  startingCash: 2000,
+  startingDebt: 5500,
+  debtInterest: 0.10,       // +10% per day
+  bankInterest: 0.06,       // +6% per day
+  totalDays: 30,
+  trenchCapacity: 100,      // # of items
+  startCity: 'mia',
+};
+
+// Seeded RNG so same day produces same prices per city
+function mulberry32(seed) {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashSeed(day, cityId) {
+  let h = 2166136261;
+  const s = `${day}-${cityId}`;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// City-level price modifiers: some cities cheap/expensive for certain goods
+const CITY_BIAS = {
+  nyc: { coke: 1.15, mdma: 0.85, xan: 0.9, heroin: 1.1, carts: 0.95 },
+  la:  { coke: 0.9, mdma: 1.1, acid: 1.15, shrooms: 1.05, ozempic: 0.85 },
+  mia: { coke: 0.8, heroin: 1.1, ket: 0.9, mdma: 1.05, weed: 0.9 },
+  ber: { mdma: 0.7, ket: 0.75, acid: 0.85, coke: 1.25, heroin: 1.2 },
+  tyo: { ludes: 0.6, shrooms: 0.8, carts: 1.3, fent: 1.5, ozempic: 0.95 },
+  mex: { weed: 0.6, coke: 0.95, shrooms: 0.75, fent: 1.4, ludes: 1.1 },
+};
+
+// Daily event pool for spikes/crashes — some goods go wild 10% of days
+const SPIKE_TYPES = [
+  { kind: 'spike', tag: 'Cops raided supply', mul: [2.5, 4.5] },
+  { kind: 'spike', tag: 'Festival nearby', mul: [1.8, 3.0] },
+  { kind: 'spike', tag: 'Celeb overdose', mul: [2.0, 3.5] },
+  { kind: 'crash', tag: 'Market flooded', mul: [0.25, 0.5] },
+  { kind: 'crash', tag: 'Cartel dumping', mul: [0.3, 0.55] },
+  { kind: 'crash', tag: 'Bad batch warning', mul: [0.35, 0.6] },
+];
+
+function generatePrices(day, cityId, drugs) {
+  const rng = mulberry32(hashSeed(day, cityId));
+  const bias = CITY_BIAS[cityId] || {};
+  // 0–2 spike events per city-day
+  const spikes = {};
+  const spikeCount = rng() < 0.7 ? (rng() < 0.5 ? 1 : 0) : 2;
+  const pool = [...drugs];
+  for (let i = 0; i < spikeCount; i++) {
+    const drug = pool.splice(Math.floor(rng() * pool.length), 1)[0];
+    const type = SPIKE_TYPES[Math.floor(rng() * SPIKE_TYPES.length)];
+    const mul = type.mul[0] + rng() * (type.mul[1] - type.mul[0]);
+    spikes[drug.id] = { mul, kind: type.kind, tag: type.tag };
+  }
+  const prices = {};
+  drugs.forEach(d => {
+    const base = d.min + rng() * (d.max - d.min);
+    const biased = base * (bias[d.id] || 1);
+    const spiked = spikes[d.id] ? biased * spikes[d.id].mul : biased;
+    // round to nearest 10 for readability
+    const rounded = Math.round(spiked / 10) * 10;
+    // random availability — some goods not sold today
+    const available = rng() > 0.15;
+    prices[d.id] = {
+      price: rounded,
+      available,
+      spike: spikes[d.id] || null,
+    };
+  });
+  return prices;
+}
+
+// Random events that trigger on travel (the A/B dilemmas)
+const EVENT_BANK = [
+  {
+    id: 'mugging',
+    title: 'Street Hustle',
+    body: 'Two guys block your path in an alley. One flashes a knife and asks for "the stash."',
+    icon: '🔪',
+    options: [
+      { label: 'Hand it over', consequence: 'loseCashOrStash', weight: 1 },
+      { label: 'Fight back',  consequence: 'fightMugger', weight: 1 },
+    ],
+  },
+  {
+    id: 'cop',
+    title: 'Cop Check',
+    body: 'Flashing lights in the rearview. Officer wants to search the trunk.',
+    icon: '🚓',
+    options: [
+      { label: 'Comply nicely',  consequence: 'copCompliance', weight: 1 },
+      { label: 'Hit the gas',    consequence: 'copFlee', weight: 1 },
+    ],
+  },
+  {
+    id: 'dealer',
+    title: 'Old Friend',
+    body: 'Someone you used to run with offers a big bag at 40% under market price. Seems legit. Seems.',
+    icon: '🫂',
+    options: [
+      { label: 'Take the deal', consequence: 'friendDeal', weight: 1 },
+      { label: 'Walk away',     consequence: 'none', weight: 1 },
+    ],
+  },
+  {
+    id: 'lostbag',
+    title: 'Dropped Bag',
+    body: 'You spot a gym bag half-stashed behind a dumpster. Heavy. Smells chemical.',
+    icon: '🎒',
+    options: [
+      { label: 'Grab it',  consequence: 'foundStash', weight: 1 },
+      { label: 'Nah',      consequence: 'none', weight: 1 },
+    ],
+  },
+  {
+    id: 'hurricane',
+    title: 'Weather Alert',
+    body: 'Hurricane warning just hit. Flights are canceling. You can buy a scalped seat on the last plane.',
+    icon: '🌀',
+    options: [
+      { label: 'Pay $800 for the seat', consequence: 'payHurricane', weight: 1 },
+      { label: 'Wait it out',           consequence: 'skipDay', weight: 1 },
+    ],
+  },
+  {
+    id: 'loanshark',
+    title: 'The Shark',
+    body: 'A man in a linen suit slides into the seat across from you. "Your debt. It\'s looking lonely. Let me help."',
+    icon: '🦈',
+    options: [
+      { label: 'Borrow $5,000',  consequence: 'borrowShark', weight: 1 },
+      { label: 'I\'m good',      consequence: 'none', weight: 1 },
+    ],
+  },
+];
+
+// Rolodex of contacts — messages arrive between days
+const CONTACTS = {
+  mami: { name: 'Mami', emoji: '💋', color: '#ff47b3' },
+  vega: { name: 'Vega', emoji: '🕶️', color: '#00e5ff' },
+  shark: { name: 'The Shark', emoji: '🦈', color: '#ffcf3a' },
+  cop: { name: 'Unknown', emoji: '📞', color: '#ff3366' },
+  sis: { name: 'Lisa', emoji: '🌸', color: '#c7ff1f' },
+};
+
+const MESSAGE_BANK = [
+  { from: 'mami', tag: 'tip', text: 'Heard coke\'s clean in Miami this week. Don\'t sleep.' },
+  { from: 'vega', tag: 'tip', text: 'Berlin molly is half price. You seeing this?' },
+  { from: 'shark', tag: 'warn', text: 'Day {day}. Your debt is ${debt}. Tick. Tock.' },
+  { from: 'sis',  tag: 'life', text: 'mom asked about you again. call her.' },
+  { from: 'mami', tag: 'flirt', text: 'come back to Miami. the pool is warm 🌴' },
+  { from: 'vega', tag: 'tip', text: 'Tokyo carts are trending hot. 12 hours till the market cools.' },
+  { from: 'cop', tag: 'warn', text: 'We know about the LAX run. Come in voluntarily.' },
+  { from: 'sis', tag: 'life', text: 'I\'m fine. you don\'t have to send more money.' },
+  { from: 'vega', tag: 'tip', text: 'Mexico City fent market is flooded. Dump if holding.' },
+  { from: 'mami', tag: 'flirt', text: 'last night was 🔥. don\'t disappear this time.' },
+];
+
+// Initial state
+function makeInitialState() {
+  const prices = {};
+  DW_CITIES.forEach(c => {
+    prices[c.id] = generatePrices(1, c.id, DW_DRUGS);
+  });
+  return {
+    day: 1,
+    city: DW_CONFIG.startCity,
+    cash: DW_CONFIG.startingCash,
+    debt: DW_CONFIG.startingDebt,
+    bank: 0,
+    health: 100,
+    heat: 0,  // cop heat 0-100
+    inventory: {},  // { drugId: qty }
+    prices,             // { cityId: { drugId: {price, available, spike} } }
+    priceHistory: {},   // { cityId: { drugId: [price1, price2, ...] } }
+    messages: [],       // [{ from, text, day, read }]
+    log: [],            // [{ day, text, kind }]
+    pendingEvent: null, // event shown after travel
+    screen: 'intro',
+    gameOver: null,     // null | 'win' | 'lose' | 'jail'
+  };
+}
+
+// Actions
+function storeReducer(state, action) {
+  switch (action.type) {
+    case 'START_GAME': {
+      const s = makeInitialState();
+      s.screen = 'market';
+      s.log = [{ day: 1, text: `Landed in ${cityName(s.city)}. Trenchcoat empty. Shark wants ${fmt(s.debt)}.`, kind: 'intro' }];
+      return s;
+    }
+    case 'BUY': {
+      const { drugId, qty } = action;
+      const p = state.prices[state.city][drugId];
+      const cost = p.price * qty;
+      if (cost > state.cash) return state;
+      if (getLoad(state.inventory) + qty > DW_CONFIG.trenchCapacity) return state;
+      const inv = { ...state.inventory, [drugId]: (state.inventory[drugId] || 0) + qty };
+      return {
+        ...state,
+        cash: state.cash - cost,
+        inventory: inv,
+        log: [{ day: state.day, text: `Bought ${qty}× ${drugName(drugId)} @ ${fmt(p.price)} in ${cityName(state.city)}.`, kind: 'buy' }, ...state.log].slice(0, 60),
+      };
+    }
+    case 'SELL': {
+      const { drugId, qty } = action;
+      const have = state.inventory[drugId] || 0;
+      if (qty > have) return state;
+      const p = state.prices[state.city][drugId];
+      const revenue = p.price * qty;
+      const inv = { ...state.inventory };
+      inv[drugId] = have - qty;
+      if (inv[drugId] <= 0) delete inv[drugId];
+      return {
+        ...state,
+        cash: state.cash + revenue,
+        inventory: inv,
+        log: [{ day: state.day, text: `Sold ${qty}× ${drugName(drugId)} @ ${fmt(p.price)} in ${cityName(state.city)}.`, kind: 'sell' }, ...state.log].slice(0, 60),
+      };
+    }
+    case 'TRAVEL': {
+      // Step to next day + reroll prices + maybe event + message + debt/bank interest
+      const newDay = state.day + 1;
+      if (newDay > DW_CONFIG.totalDays) {
+        // End of game
+        return endGame(state, 'win');
+      }
+      const newCity = action.cityId;
+      // Regenerate prices for new day (everywhere)
+      const prices = {};
+      DW_CITIES.forEach(c => {
+        prices[c.id] = generatePrices(newDay, c.id, DW_DRUGS);
+      });
+      // Save price history for current city before move
+      const history = { ...state.priceHistory };
+      if (!history[state.city]) history[state.city] = {};
+      DW_DRUGS.forEach(d => {
+        const arr = history[state.city][d.id] || [];
+        arr.push(state.prices[state.city][d.id].price);
+        history[state.city][d.id] = arr.slice(-14);
+      });
+
+      const newDebt = Math.round(state.debt * (1 + DW_CONFIG.debtInterest));
+      const newBank = Math.round(state.bank * (1 + DW_CONFIG.bankInterest));
+
+      // Maybe trigger a random event (35%)
+      let pendingEvent = null;
+      if (Math.random() < 0.35) {
+        const ev = EVENT_BANK[Math.floor(Math.random() * EVENT_BANK.length)];
+        pendingEvent = { ...ev };
+      }
+
+      // Maybe add a message (50%)
+      const messages = [...state.messages];
+      if (Math.random() < 0.6) {
+        const t = MESSAGE_BANK[Math.floor(Math.random() * MESSAGE_BANK.length)];
+        let text = t.text.replace('{day}', newDay).replace('{debt}', fmt(newDebt));
+        messages.unshift({ from: t.from, tag: t.tag, text, day: newDay, read: false });
+      }
+
+      // Heat cools by 5 each day
+      const newHeat = Math.max(0, state.heat - 5);
+
+      return {
+        ...state,
+        day: newDay,
+        city: newCity,
+        prices,
+        priceHistory: history,
+        debt: newDebt,
+        bank: newBank,
+        heat: newHeat,
+        messages: messages.slice(0, 30),
+        pendingEvent,
+        screen: pendingEvent ? 'event' : 'endOfDay',
+        log: [{ day: newDay, text: `Flew to ${cityName(newCity)}. Day ${newDay} of ${DW_CONFIG.totalDays}.`, kind: 'travel' }, ...state.log].slice(0, 60),
+      };
+    }
+    case 'RESOLVE_EVENT': {
+      const newState = applyConsequence(state, action.consequence);
+      return { ...newState, pendingEvent: null, screen: 'endOfDay' };
+    }
+    case 'GOTO': {
+      return { ...state, screen: action.screen };
+    }
+    case 'MARK_READ': {
+      return { ...state, messages: state.messages.map(m => ({ ...m, read: true })) };
+    }
+    case 'PAY_DEBT': {
+      const amt = Math.min(action.amount, state.cash, state.debt);
+      return {
+        ...state,
+        cash: state.cash - amt,
+        debt: state.debt - amt,
+        log: [{ day: state.day, text: `Paid ${fmt(amt)} to the Shark.`, kind: 'debt' }, ...state.log].slice(0, 60),
+      };
+    }
+    case 'DEPOSIT': {
+      const amt = Math.min(action.amount, state.cash);
+      return { ...state, cash: state.cash - amt, bank: state.bank + amt };
+    }
+    case 'WITHDRAW': {
+      const amt = Math.min(action.amount, state.bank);
+      return { ...state, cash: state.cash + amt, bank: state.bank - amt };
+    }
+    case 'RESET':
+      return makeInitialState();
+    case '__LOAD':
+      return action.state;
+    default:
+      return state;
+  }
+}
+
+function endGame(state, how) {
+  const netWorth = state.cash + state.bank - state.debt;
+  const verdict = netWorth > 50000 ? 'legend' : netWorth > 10000 ? 'baller' : netWorth > 0 ? 'survivor' : 'broke';
+  return { ...state, screen: 'gameover', gameOver: { how, netWorth, verdict } };
+}
+
+// Apply event consequence
+function applyConsequence(state, key) {
+  switch (key) {
+    case 'loseCashOrStash': {
+      const loss = Math.round(state.cash * 0.25);
+      return {
+        ...state,
+        cash: state.cash - loss,
+        health: Math.max(0, state.health - 10),
+        log: [{ day: state.day, text: `Mugged. Lost ${fmt(loss)}. Bruised but alive.`, kind: 'bad' }, ...state.log],
+      };
+    }
+    case 'fightMugger': {
+      const luck = Math.random();
+      if (luck > 0.5) {
+        return {
+          ...state,
+          health: Math.max(0, state.health - 20),
+          log: [{ day: state.day, text: `Beat the mugger. Kept your stash. Cracked rib.`, kind: 'ok' }, ...state.log],
+        };
+      }
+      const loss = Math.round(state.cash * 0.5);
+      return {
+        ...state,
+        cash: state.cash - loss,
+        health: Math.max(0, state.health - 35),
+        log: [{ day: state.day, text: `Fought, lost. Down ${fmt(loss)} and bleeding.`, kind: 'bad' }, ...state.log],
+      };
+    }
+    case 'copCompliance': {
+      const heat = state.heat + 10;
+      const load = getLoad(state.inventory);
+      if (load > 20) {
+        // Lose inventory + jail if too heavy
+        return endGame({
+          ...state,
+          log: [{ day: state.day, text: `Cops found the stash. Game over.`, kind: 'bad' }, ...state.log],
+        }, 'jail');
+      }
+      return {
+        ...state,
+        heat,
+        log: [{ day: state.day, text: `Cops let you go. Heat +10.`, kind: 'ok' }, ...state.log],
+      };
+    }
+    case 'copFlee': {
+      const luck = Math.random();
+      if (luck > 0.4) {
+        return {
+          ...state,
+          heat: state.heat + 25,
+          log: [{ day: state.day, text: `Outran the cops. Adrenaline. Heat +25.`, kind: 'ok' }, ...state.log],
+        };
+      }
+      return endGame({
+        ...state,
+        log: [{ day: state.day, text: `Caught. Cuffed. Game over.`, kind: 'bad' }, ...state.log],
+      }, 'jail');
+    }
+    case 'friendDeal': {
+      // 60% legit, 40% scam
+      if (Math.random() > 0.4) {
+        // Find a good to "get"
+        const affordable = DW_DRUGS.filter(d => d.max > 500);
+        const drug = affordable[Math.floor(Math.random() * affordable.length)];
+        const qty = 5;
+        const space = DW_CONFIG.trenchCapacity - getLoad(state.inventory);
+        const actual = Math.min(qty, space);
+        const cost = Math.round(drug.min * 0.6 * actual);
+        if (cost > state.cash) {
+          return { ...state, log: [{ day: state.day, text: `Couldn't afford the deal anyway.`, kind: 'ok' }, ...state.log] };
+        }
+        return {
+          ...state,
+          cash: state.cash - cost,
+          inventory: { ...state.inventory, [drug.id]: (state.inventory[drug.id] || 0) + actual },
+          log: [{ day: state.day, text: `Got ${actual}× ${drug.name} at 40% off. Luck.`, kind: 'good' }, ...state.log],
+        };
+      }
+      const loss = Math.min(state.cash, 800);
+      return {
+        ...state,
+        cash: state.cash - loss,
+        log: [{ day: state.day, text: `Old friend scammed you. Lost ${fmt(loss)}.`, kind: 'bad' }, ...state.log],
+      };
+    }
+    case 'foundStash': {
+      // Find something good
+      const affordable = DW_DRUGS.filter(d => d.tier !== 'low');
+      const drug = affordable[Math.floor(Math.random() * affordable.length)];
+      const qty = 3 + Math.floor(Math.random() * 5);
+      const space = DW_CONFIG.trenchCapacity - getLoad(state.inventory);
+      const actual = Math.min(qty, space);
+      return {
+        ...state,
+        inventory: { ...state.inventory, [drug.id]: (state.inventory[drug.id] || 0) + actual },
+        heat: state.heat + 5,
+        log: [{ day: state.day, text: `Found ${actual}× ${drug.name}. Felony.`, kind: 'good' }, ...state.log],
+      };
+    }
+    case 'payHurricane': {
+      return {
+        ...state,
+        cash: state.cash - 800,
+        log: [{ day: state.day, text: `Last flight out. -${fmt(800)}.`, kind: 'ok' }, ...state.log],
+      };
+    }
+    case 'skipDay': {
+      // Apply debt interest again
+      return {
+        ...state,
+        debt: Math.round(state.debt * (1 + DW_CONFIG.debtInterest)),
+        log: [{ day: state.day, text: `Stuck an extra day. Debt grew.`, kind: 'bad' }, ...state.log],
+      };
+    }
+    case 'borrowShark': {
+      return {
+        ...state,
+        cash: state.cash + 5000,
+        debt: state.debt + 5500,
+        log: [{ day: state.day, text: `Borrowed ${fmt(5000)}. Owe ${fmt(5500)}. Smile.`, kind: 'bad' }, ...state.log],
+      };
+    }
+    default:
+      return state;
+  }
+}
+
+// Helpers
+function getLoad(inv) {
+  return Object.values(inv).reduce((a, b) => a + b, 0);
+}
+function cityName(id) { return (DW_CITIES.find(c => c.id === id) || {}).name || id; }
+function drugName(id) { return (DW_DRUGS.find(d => d.id === id) || {}).name || id; }
+function drugOf(id) { return DW_DRUGS.find(d => d.id === id); }
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 1000000) return `${sign}$${(abs/1000000).toFixed(1)}M`;
+  if (abs >= 10000) return `${sign}$${Math.round(abs/1000)}k`;
+  return `${sign}$${abs.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+function fmtFull(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0';
+  return `$${Math.round(n).toLocaleString('en-US')}`;
+}
+
+Object.assign(window, {
+  DW_CONFIG, makeInitialState, storeReducer, generatePrices,
+  getLoad, cityName, drugName, drugOf, fmt, fmtFull,
+  EVENT_BANK, CONTACTS, MESSAGE_BANK, CITY_BIAS,
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// proto-audio.jsx
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// proto-audio.jsx — WebAudio: synthwave ambient + UI sfx
+// ═══════════════════════════════════════════════════════════
+
+const DWAudio = (() => {
+  let ctx = null;
+  let masterGain = null;
+  let ambientOn = false;
+  let ambientNodes = [];
+  let muted = localStorage.getItem('dw-muted') === '1';
+
+  function ensure() {
+    if (ctx) return ctx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    ctx = new AC();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = muted ? 0 : 0.6;
+    masterGain.connect(ctx.destination);
+    return ctx;
+  }
+
+  // ── UI sounds ────────────────────────────────────────────
+  function tone(freq, dur = 0.12, type = 'sine', gain = 0.15, detune = 0) {
+    const c = ensure();
+    if (!c) return;
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.detune.value = detune;
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(gain, c.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    osc.connect(g); g.connect(masterGain);
+    osc.start();
+    osc.stop(c.currentTime + dur + 0.05);
+  }
+
+  function tap() {
+    tone(880, 0.05, 'square', 0.06);
+  }
+  function confirm() {
+    tone(523, 0.08, 'triangle', 0.1);
+    setTimeout(() => tone(784, 0.1, 'triangle', 0.1), 60);
+  }
+  function cancel() {
+    tone(400, 0.08, 'square', 0.08);
+    setTimeout(() => tone(280, 0.12, 'square', 0.08), 50);
+  }
+  function cashRegister() {
+    const c = ensure();
+    if (!c) return;
+    // Ching!
+    [880, 1320, 1760].forEach((f, i) => {
+      setTimeout(() => tone(f, 0.15, 'triangle', 0.12), i * 40);
+    });
+  }
+  function buzz() {
+    // Phone notification
+    tone(1200, 0.06, 'square', 0.1);
+    setTimeout(() => tone(900, 0.08, 'square', 0.1), 80);
+  }
+  function bigWin() {
+    const notes = [523, 659, 784, 1047, 1319];
+    notes.forEach((f, i) => setTimeout(() => tone(f, 0.2, 'triangle', 0.15), i * 90));
+  }
+  function lose() {
+    const c = ensure();
+    if (!c) return;
+    [440, 330, 220, 165].forEach((f, i) => {
+      setTimeout(() => tone(f, 0.3, 'sawtooth', 0.12), i * 120);
+    });
+  }
+  function whoosh() {
+    const c = ensure();
+    if (!c) return;
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(200, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, c.currentTime + 0.4);
+    g.gain.value = 0.0001;
+    g.gain.exponentialRampToValueAtTime(0.08, c.currentTime + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.4);
+    const filter = c.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 800;
+    filter.Q.value = 3;
+    osc.connect(filter); filter.connect(g); g.connect(masterGain);
+    osc.start();
+    osc.stop(c.currentTime + 0.5);
+  }
+
+  // ── Synthwave ambient loop ───────────────────────────────
+  // Slow pad + bass + arp. Plays in a loop.
+  function startAmbient() {
+    const c = ensure();
+    if (!c || ambientOn) return;
+    ambientOn = true;
+
+    const ambientGain = c.createGain();
+    ambientGain.gain.value = 0;
+    ambientGain.gain.linearRampToValueAtTime(0.35, c.currentTime + 2);
+    ambientGain.connect(masterGain);
+
+    // Pad — two detuned saws with lowpass sweep
+    const padA = c.createOscillator();
+    const padB = c.createOscillator();
+    padA.type = 'sawtooth'; padB.type = 'sawtooth';
+    padA.frequency.value = 110; // A
+    padB.frequency.value = 110; padB.detune.value = 12;
+    const padFilter = c.createBiquadFilter();
+    padFilter.type = 'lowpass';
+    padFilter.frequency.value = 400;
+    padFilter.Q.value = 6;
+    const padGain = c.createGain();
+    padGain.gain.value = 0.07;
+
+    // LFO to sweep pad filter
+    const lfo = c.createOscillator();
+    const lfoGain = c.createGain();
+    lfo.frequency.value = 0.08;
+    lfoGain.gain.value = 600;
+    lfo.connect(lfoGain); lfoGain.connect(padFilter.frequency);
+
+    padA.connect(padFilter); padB.connect(padFilter);
+    padFilter.connect(padGain); padGain.connect(ambientGain);
+
+    // Bass — pulse on 1 and 3
+    const bassNotes = [55, 55, 73, 65]; // A, A, D, E
+    let bassIdx = 0;
+    function pulseBass() {
+      if (!ambientOn) return;
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = bassNotes[bassIdx % bassNotes.length];
+      bassIdx++;
+      g.gain.value = 0;
+      const now = c.currentTime;
+      g.gain.linearRampToValueAtTime(0.12, now + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+      osc.connect(g); g.connect(ambientGain);
+      osc.start(now);
+      osc.stop(now + 1.4);
+    }
+
+    // Arp — minor pentatonic
+    const arpFreqs = [440, 523, 659, 784, 880, 784, 659, 523]; // A C E G A G E C
+    let arpIdx = 0;
+    function pulseArp() {
+      if (!ambientOn) return;
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = 'square';
+      osc.frequency.value = arpFreqs[arpIdx % arpFreqs.length];
+      arpIdx++;
+      const now = c.currentTime;
+      g.gain.value = 0;
+      g.gain.linearRampToValueAtTime(0.04, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      const filter = c.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1800;
+      osc.connect(filter); filter.connect(g); g.connect(ambientGain);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    }
+
+    padA.start(); padB.start(); lfo.start();
+
+    const bassInterval = setInterval(pulseBass, 1400);
+    const arpInterval = setInterval(pulseArp, 350);
+
+    ambientNodes = [padA, padB, lfo, ambientGain, bassInterval, arpInterval];
+  }
+
+  function stopAmbient() {
+    if (!ambientOn) return;
+    ambientOn = false;
+    const [padA, padB, lfo, g, bi, ai] = ambientNodes;
+    clearInterval(bi); clearInterval(ai);
+    const c = ctx;
+    try {
+      g.gain.linearRampToValueAtTime(0, c.currentTime + 0.5);
+      setTimeout(() => {
+        try { padA.stop(); padB.stop(); lfo.stop(); } catch (e) {}
+      }, 600);
+    } catch (e) {}
+    ambientNodes = [];
+  }
+
+  function setMuted(m) {
+    muted = m;
+    localStorage.setItem('dw-muted', m ? '1' : '0');
+    if (masterGain) {
+      masterGain.gain.linearRampToValueAtTime(m ? 0 : 0.6, ctx.currentTime + 0.1);
+    }
+  }
+  function isMuted() { return muted; }
+  function isAmbientOn() { return ambientOn; }
+
+  return { ensure, tap, confirm, cancel, cashRegister, buzz, bigWin, lose, whoosh, startAmbient, stopAmbient, setMuted, isMuted, isAmbientOn };
+})();
+
+Object.assign(window, { DWAudio });
+
+
+// ═══════════════════════════════════════════════════════════
+// proto-ui.jsx
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// proto-ui.jsx — HUD, buttons, sheets, number animators
+// ═══════════════════════════════════════════════════════════
+
+// Neon CTA button
+function NeonBtn({ children, color = DW.magenta, onClick, disabled, style = {}, small, ghost }) {
+  const [pressed, setPressed] = React.useState(false);
+  return (
+    <button
+      onPointerDown={() => { setPressed(true); DWAudio.tap(); }}
+      onPointerUp={() => setPressed(false)}
+      onPointerLeave={() => setPressed(false)}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        appearance: 'none', border: `1.5px solid ${color}`,
+        background: ghost ? 'transparent' : pressed ? color : `${color}22`,
+        color: ghost ? color : pressed ? '#14052a' : '#fff',
+        padding: small ? '8px 14px' : '14px 22px',
+        fontFamily: DW.display, fontWeight: 800, letterSpacing: '0.08em',
+        fontSize: small ? 12 : 14, textTransform: 'uppercase', cursor: 'pointer',
+        borderRadius: 2, transition: 'all 120ms',
+        boxShadow: pressed ? `0 0 28px ${color}aa` : `0 0 12px ${color}66`,
+        opacity: disabled ? 0.35 : 1,
+        transform: pressed ? 'translateY(1px)' : 'none',
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Stepper control (+/-) with quick actions
+function Stepper({ value, onChange, min = 0, max = 99, step = 1, color = DW.magenta }) {
+  const inc = () => { DWAudio.tap(); onChange(Math.min(max, value + step)); };
+  const dec = () => { DWAudio.tap(); onChange(Math.max(min, value - step)); };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <button onClick={dec} disabled={value <= min}
+        style={stepBtnStyle(color, value <= min)}>−</button>
+      <div style={{
+        fontFamily: DW.display, fontSize: 32, color: '#fff',
+        minWidth: 70, textAlign: 'center',
+        textShadow: `0 0 20px ${color}`,
+      }}>{value}</div>
+      <button onClick={inc} disabled={value >= max}
+        style={stepBtnStyle(color, value >= max)}>+</button>
+    </div>
+  );
+}
+function stepBtnStyle(color, disabled) {
+  return {
+    width: 44, height: 44, borderRadius: '50%',
+    border: `1.5px solid ${color}`, background: `${color}22`,
+    color: '#fff', fontSize: 24, fontWeight: 600, cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: `0 0 12px ${color}55`, opacity: disabled ? 0.3 : 1,
+  };
+}
+
+// Slider — big, tactile
+function BigSlider({ value, onChange, min = 0, max = 100, color = DW.magenta }) {
+  const trackRef = React.useRef(null);
+  const pct = max > min ? (value - min) / (max - min) * 100 : 0;
+  const handleDrag = (clientX) => {
+    const rect = trackRef.current.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const v = Math.round(min + p * (max - min));
+    onChange(v);
+  };
+  return (
+    <div
+      ref={trackRef}
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        DWAudio.tap();
+        handleDrag(e.clientX);
+      }}
+      onPointerMove={(e) => { if (e.buttons) handleDrag(e.clientX); }}
+      style={{
+        position: 'relative', height: 48, borderRadius: 24,
+        background: 'rgba(255,255,255,0.06)', cursor: 'pointer',
+        border: '1px solid rgba(255,255,255,0.12)',
+      }}
+    >
+      <div style={{
+        position: 'absolute', left: 0, top: 0, bottom: 0,
+        width: `${pct}%`,
+        background: `linear-gradient(90deg, ${color}88, ${color})`,
+        borderRadius: 24, boxShadow: `0 0 20px ${color}99`,
+      }}/>
+      <div style={{
+        position: 'absolute', left: `calc(${pct}% - 18px)`, top: 6,
+        width: 36, height: 36, borderRadius: '50%',
+        background: '#fff', boxShadow: `0 0 14px ${color}, 0 0 30px ${color}66`,
+        border: `2px solid ${color}`,
+      }}/>
+    </div>
+  );
+}
+
+// Animated number (cash counter)
+function AnimatedNum({ value, format = fmt, duration = 500 }) {
+  const [display, setDisplay] = React.useState(value);
+  const fromRef = React.useRef(value);
+  const rafRef = React.useRef(null);
+  React.useEffect(() => {
+    const from = fromRef.current;
+    const to = value;
+    if (from === to) return;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const cur = from + (to - from) * eased;
+      setDisplay(cur);
+      if (t < 1) rafRef.current = requestAnimationFrame(step);
+      else { fromRef.current = to; setDisplay(to); }
+    }
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [value]);
+  return <>{format(display)}</>;
+}
+
+// Stat chip
+function StatChip({ label, value, color = DW.cyan, icon, glow = false }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 2,
+      padding: '6px 10px',
+      background: 'rgba(255,255,255,0.04)',
+      border: `1px solid ${color}44`,
+      borderRadius: 4,
+      minWidth: 60,
+      boxShadow: glow ? `0 0 18px ${color}88, inset 0 0 10px ${color}33` : 'none',
+    }}>
+      <div style={{
+        fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em',
+        color: 'rgba(255,255,255,0.5)', fontFamily: DW.mono,
+      }}>{label}</div>
+      <div style={{
+        fontFamily: DW.display, fontSize: 14, fontWeight: 800, color: '#fff',
+        textShadow: `0 0 10px ${color}`,
+        display: 'flex', alignItems: 'center', gap: 4,
+      }}>
+        {icon && <span style={{ fontSize: 12 }}>{icon}</span>}
+        <span>{value}</span>
+      </div>
+    </div>
+  );
+}
+
+// Top HUD bar (always visible across game screens)
+function HUDBar({ state }) {
+  const load = getLoad(state.inventory);
+  return (
+    <div style={{
+      position: 'absolute', top: 56, left: 0, right: 0, zIndex: 20,
+      padding: '6px 12px',
+      display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'space-between',
+      background: 'linear-gradient(180deg, rgba(10,1,24,0.88), rgba(10,1,24,0.6) 80%, transparent)',
+      backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+    }}>
+      <div style={{ display: 'flex', gap: 4 }}>
+        <StatChip label="Day" value={`${state.day}/${DW_CONFIG.totalDays}`} color={DW.cyan} />
+        <StatChip label="Cash" value={<AnimatedNum value={state.cash} />} color={DW.lime} glow />
+        <StatChip label="Debt" value={fmt(state.debt)} color={DW.danger} />
+      </div>
+      <div style={{ display: 'flex', gap: 4 }}>
+        <StatChip label="Load" value={`${load}/${DW_CONFIG.trenchCapacity}`} color={load > 80 ? DW.danger : DW.magenta} />
+        {state.heat > 0 && <StatChip label="Heat" value={state.heat} color={DW.gold} />}
+      </div>
+    </div>
+  );
+}
+
+// Bottom nav tabs (Market / Inventory / Travel / Phone)
+function BottomNav({ screen, onNavigate, messagesUnread }) {
+  const tabs = [
+    { id: 'market', label: 'Market', icon: '💵', color: DW.lime },
+    { id: 'inventory', label: 'Stash', icon: '🧥', color: DW.magenta },
+    { id: 'travel', label: 'Travel', icon: '✈️', color: DW.cyan },
+    { id: 'phone', label: 'Phone', icon: '📱', color: DW.sunset, badge: messagesUnread },
+  ];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
+      padding: '10px 12px 28px',
+      background: 'linear-gradient(0deg, rgba(10,1,24,0.96), rgba(10,1,24,0.75) 60%, transparent)',
+      backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+      display: 'flex', gap: 6,
+    }}>
+      {tabs.map(t => {
+        const active = screen === t.id;
+        return (
+          <button
+            key={t.id}
+            onClick={() => { DWAudio.tap(); onNavigate(t.id); }}
+            style={{
+              flex: 1, background: active ? `${t.color}22` : 'transparent',
+              border: `1px solid ${active ? t.color : 'rgba(255,255,255,0.08)'}`,
+              color: '#fff', padding: '8px 4px',
+              borderRadius: 4, cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              fontFamily: DW.display, fontWeight: 700, letterSpacing: '0.08em',
+              fontSize: 10, textTransform: 'uppercase',
+              boxShadow: active ? `0 0 20px ${t.color}66, inset 0 0 10px ${t.color}33` : 'none',
+              textShadow: active ? `0 0 10px ${t.color}` : 'none',
+              position: 'relative',
+              transition: 'all 180ms',
+            }}
+          >
+            <span style={{ fontSize: 18 }}>{t.icon}</span>
+            <span>{t.label}</span>
+            {t.badge > 0 && (
+              <div style={{
+                position: 'absolute', top: 4, right: 8,
+                width: 14, height: 14, borderRadius: '50%',
+                background: DW.danger, fontSize: 9, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: `0 0 8px ${DW.danger}`,
+              }}>{t.badge}</div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Spark line (price history mini-chart)
+function Spark({ values, color, width = 40, height = 16 }) {
+  if (!values || values.length < 2) {
+    return <div style={{ width, height, opacity: 0.3, fontFamily: DW.mono, fontSize: 9, color }}>—</div>;
+  }
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+  const last = values[values.length - 1];
+  const prev = values[values.length - 2];
+  const up = last >= prev;
+  return (
+    <svg width={width} height={height} style={{ overflow: 'visible' }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" opacity="0.85" />
+      <circle cx={width} cy={height - ((last - min) / range) * height} r="1.8"
+              fill={up ? DW.good : DW.danger}
+              style={{ filter: `drop-shadow(0 0 4px ${up ? DW.good : DW.danger})` }}/>
+    </svg>
+  );
+}
+
+// Full-screen modal sheet (slides up)
+function Sheet({ open, onClose, children, title, color = DW.magenta }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, zIndex: 40,
+      pointerEvents: open ? 'auto' : 'none',
+    }}>
+      <div
+        onClick={() => { DWAudio.cancel(); onClose(); }}
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(10,1,24,0.6)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+          opacity: open ? 1 : 0, transition: 'opacity 260ms',
+        }}
+      />
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0,
+        background: 'linear-gradient(180deg, #1b0a3e 0%, #0a0118 100%)',
+        border: `1px solid ${color}44`, borderBottom: 'none',
+        borderTopLeftRadius: 24, borderTopRightRadius: 24,
+        padding: '18px 20px 30px',
+        transform: open ? 'translateY(0)' : 'translateY(100%)',
+        transition: 'transform 320ms cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: `0 -10px 40px ${color}55`,
+      }}>
+        <div style={{
+          width: 40, height: 4, borderRadius: 2,
+          background: 'rgba(255,255,255,0.3)',
+          margin: '0 auto 14px',
+        }}/>
+        {title && (
+          <div style={{
+            fontFamily: DW.display, fontWeight: 800, fontSize: 20,
+            color: '#fff', textShadow: `0 0 14px ${color}`,
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            marginBottom: 14,
+          }}>{title}</div>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Status bar (spoof iOS top)
+function StatusBar({ time = '22:48' }) {
+  return (
+    <div style={{
+      position: 'absolute', top: 12, left: 0, right: 0, zIndex: 30,
+      padding: '4px 32px',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      fontFamily: DW.display, color: '#fff', fontWeight: 700, fontSize: 14,
+      textShadow: '0 0 6px rgba(0,0,0,0.5)',
+    }}>
+      <span>{time}</span>
+      <span style={{ fontFamily: DW.mono, fontSize: 11, letterSpacing: '0.1em' }}>CRIME·NET 5G</span>
+      <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <span style={{ fontSize: 11 }}>97%</span>
+        <span>🔋</span>
+      </span>
+    </div>
+  );
+}
+
+// Toast (transient flash message)
+function Toast({ msg, color = DW.magenta, onDone }) {
+  React.useEffect(() => {
+    if (!msg) return;
+    const t = setTimeout(() => onDone && onDone(), 2200);
+    return () => clearTimeout(t);
+  }, [msg]);
+  if (!msg) return null;
+  return (
+    <div style={{
+      position: 'absolute', top: 110, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 50,
+      background: 'rgba(10,1,24,0.95)', border: `1px solid ${color}`,
+      color: '#fff', padding: '8px 18px',
+      fontFamily: DW.display, fontWeight: 700, fontSize: 12,
+      textTransform: 'uppercase', letterSpacing: '0.1em',
+      borderRadius: 2, boxShadow: `0 0 22px ${color}cc`,
+      textShadow: `0 0 8px ${color}`,
+      animation: 'dw-toast 2.2s ease-out forwards',
+    }}>{msg}</div>
+  );
+}
+
+// Keyframe CSS (injected once)
+function UIStyles() {
+  return (
+    <style>{`
+      @keyframes dw-toast {
+        0% { opacity: 0; transform: translate(-50%, -10px); }
+        15% { opacity: 1; transform: translate(-50%, 0); }
+        85% { opacity: 1; }
+        100% { opacity: 0; transform: translate(-50%, -10px); }
+      }
+      @keyframes dw-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+      @keyframes dw-shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-2px); }
+        40% { transform: translateX(2px); }
+        60% { transform: translateX(-1px); }
+        80% { transform: translateX(1px); }
+      }
+      @keyframes dw-glow {
+        0%, 100% { box-shadow: 0 0 12px currentColor; }
+        50% { box-shadow: 0 0 28px currentColor, 0 0 48px currentColor; }
+      }
+      @keyframes dw-scan {
+        from { background-position: 0 0; }
+        to { background-position: 0 6px; }
+      }
+      @keyframes dw-fadeup {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .dw-scanlines {
+        position: relative;
+      }
+      .dw-scanlines::after {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background: repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 3px);
+      }
+    `}</style>
+  );
+}
+
+Object.assign(window, {
+  NeonBtn, Stepper, BigSlider, AnimatedNum, StatChip, HUDBar, BottomNav,
+  Spark, Sheet, StatusBar, Toast, UIStyles,
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// proto-screens.jsx
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// proto-screens.jsx — all game screens
+// ═══════════════════════════════════════════════════════════
+
+// ── Intro ──────────────────────────────────────────────────
+function IntroScreen({ onStart }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: DW.gradNight, overflow: 'hidden',
+    }}>
+      <CityScene id="mia" />
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.3) 0%, rgba(10,1,24,0.5) 40%, rgba(10,1,24,0.95) 100%)',
+      }}/>
+
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 120,
+        textAlign: 'center', padding: '0 28px', zIndex: 5,
+      }}>
+        <div style={{
+          fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.3em',
+          color: DW.cyan, opacity: 0.8, marginBottom: 8,
+          textTransform: 'uppercase',
+        }}>1986 · A NEW GAME</div>
+        <div style={{
+          fontFamily: DW.display, fontWeight: 800, fontSize: 56,
+          lineHeight: 0.9, color: '#fff',
+          textShadow: `0 0 30px ${DW.magenta}, 0 0 60px ${DW.magenta}88, 0 4px 0 ${DW.violet}`,
+          letterSpacing: '-0.02em', marginBottom: 14,
+          textTransform: 'uppercase',
+        }}>Dope<br/>Wars</div>
+        <div style={{
+          fontFamily: DW.body, fontSize: 14, color: 'rgba(255,255,255,0.7)',
+          marginBottom: 28, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto',
+          lineHeight: 1.4,
+        }}>
+          30 days. 6 cities. A trenchcoat full of contraband and a loanshark who knows your name.
+        </div>
+        <NeonBtn color={DW.lime} onClick={() => { DWAudio.confirm(); DWAudio.startAmbient(); onStart(); }}>
+          ▸ Start Running
+        </NeonBtn>
+      </div>
+
+      {/* palm silhouette */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 80,
+        background: 'linear-gradient(0deg, #0a0118, transparent)',
+      }}/>
+    </div>
+  );
+}
+
+// ── Market Screen ──────────────────────────────────────────
+function MarketScreen({ state, dispatch, onOpenTrade, layout = 'list' }) {
+  const city = DW_CITIES.find(c => c.id === state.city);
+  const prices = state.prices[state.city];
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.night }}>
+      {/* Atmospheric city backdrop, dim */}
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.22 }}>
+        <CityScene id={state.city} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.65) 0%, rgba(10,1,24,0.92) 55%, rgba(10,1,24,0.98) 100%)',
+      }}/>
+
+      <HUDBar state={state} />
+
+      <div style={{
+        position: 'absolute', top: 112, left: 0, right: 0, bottom: 100,
+        overflow: 'auto', padding: '0 12px 20px',
+      }}>
+        {/* City header */}
+        <div style={{
+          padding: '8px 4px 14px',
+          borderBottom: `1px solid ${city.accent}33`,
+          marginBottom: 12,
+        }}>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em',
+            color: city.accent, textTransform: 'uppercase',
+          }}>{city.code} · {city.tz} · {city.temp}°F</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 28, fontWeight: 800,
+            color: '#fff', textShadow: `0 0 18px ${city.accent}`,
+            letterSpacing: '-0.01em', textTransform: 'uppercase',
+            lineHeight: 1,
+          }}>{city.name}</div>
+          <div style={{
+            fontFamily: DW.body, fontSize: 11, color: 'rgba(255,255,255,0.55)',
+            marginTop: 4, fontStyle: 'italic',
+          }}>"{city.mood}"</div>
+        </div>
+
+        {layout === 'list' && (
+          <MarketList state={state} prices={prices} onOpenTrade={onOpenTrade} />
+        )}
+        {layout === 'grid' && (
+          <MarketGrid state={state} prices={prices} onOpenTrade={onOpenTrade} />
+        )}
+        {layout === 'ticker' && (
+          <MarketTicker state={state} prices={prices} onOpenTrade={onOpenTrade} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Market row — list variant (default)
+function MarketList({ state, prices, onOpenTrade }) {
+  const history = state.priceHistory[state.city] || {};
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {DW_DRUGS.map(drug => {
+        const p = prices[drug.id];
+        const held = state.inventory[drug.id] || 0;
+        const spikeHot = p.spike?.kind === 'spike';
+        const spikeCrash = p.spike?.kind === 'crash';
+        const color = spikeHot ? DW.lime : spikeCrash ? DW.cyan : '#fff';
+        return (
+          <button
+            key={drug.id}
+            onClick={() => { DWAudio.tap(); onOpenTrade(drug.id); }}
+            disabled={!p.available}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '10px 12px', background: 'rgba(255,255,255,0.03)',
+              border: `1px solid ${spikeHot ? DW.lime+'66' : spikeCrash ? DW.cyan+'66' : 'rgba(255,255,255,0.08)'}`,
+              borderRadius: 3, cursor: p.available ? 'pointer' : 'not-allowed',
+              opacity: p.available ? 1 : 0.35,
+              color: '#fff', textAlign: 'left',
+              boxShadow: spikeHot ? `0 0 18px ${DW.lime}33, inset 0 0 12px ${DW.lime}11` :
+                         spikeCrash ? `0 0 18px ${DW.cyan}33, inset 0 0 12px ${DW.cyan}11` : 'none',
+              transition: 'all 150ms',
+            }}
+          >
+            <div style={{ fontSize: 22, lineHeight: 1 }}>{drug.emoji}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: DW.display, fontWeight: 700, fontSize: 14,
+                textTransform: 'uppercase', letterSpacing: '0.02em',
+              }}>{drug.name}</div>
+              {p.spike ? (
+                <div style={{
+                  fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.12em',
+                  color: spikeHot ? DW.lime : DW.cyan,
+                  textTransform: 'uppercase', marginTop: 1,
+                  animation: 'dw-pulse 1.6s infinite',
+                }}>◉ {p.spike.tag}</div>
+              ) : held > 0 ? (
+                <div style={{
+                  fontFamily: DW.mono, fontSize: 9,
+                  color: 'rgba(255,255,255,0.55)', marginTop: 1,
+                }}>HOLDING {held}</div>
+              ) : (
+                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', fontFamily: DW.mono, marginTop: 1 }}>—</div>
+              )}
+            </div>
+            <Spark values={history[drug.id]} color={color} />
+            <div style={{ textAlign: 'right', minWidth: 60 }}>
+              <div style={{
+                fontFamily: DW.display, fontWeight: 800, fontSize: 15, color,
+                textShadow: (spikeHot || spikeCrash) ? `0 0 10px ${color}` : 'none',
+              }}>{fmt(p.price)}</div>
+              <div style={{
+                fontSize: 8, fontFamily: DW.mono, color: 'rgba(255,255,255,0.4)',
+                letterSpacing: '0.14em',
+              }}>PER UNIT</div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Grid variant
+function MarketGrid({ state, prices, onOpenTrade }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      {DW_DRUGS.map(drug => {
+        const p = prices[drug.id];
+        const held = state.inventory[drug.id] || 0;
+        const spikeHot = p.spike?.kind === 'spike';
+        const spikeCrash = p.spike?.kind === 'crash';
+        const color = spikeHot ? DW.lime : spikeCrash ? DW.cyan : DW.magenta;
+        return (
+          <button
+            key={drug.id}
+            onClick={() => { DWAudio.tap(); onOpenTrade(drug.id); }}
+            disabled={!p.available}
+            style={{
+              padding: 12, background: 'rgba(255,255,255,0.03)',
+              border: `1px solid ${color}55`, borderRadius: 3,
+              cursor: p.available ? 'pointer' : 'not-allowed',
+              opacity: p.available ? 1 : 0.35,
+              color: '#fff', textAlign: 'left', minHeight: 96,
+              boxShadow: (spikeHot || spikeCrash) ? `0 0 16px ${color}44` : 'none',
+              display: 'flex', flexDirection: 'column', gap: 4,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: 22 }}>{drug.emoji}</div>
+              {held > 0 && <div style={{
+                fontFamily: DW.mono, fontSize: 9, color: DW.magenta,
+                background: `${DW.magenta}22`, padding: '2px 6px', borderRadius: 2,
+              }}>×{held}</div>}
+            </div>
+            <div style={{
+              fontFamily: DW.display, fontWeight: 700, fontSize: 12,
+              textTransform: 'uppercase',
+            }}>{drug.name}</div>
+            <div style={{
+              fontFamily: DW.display, fontWeight: 800, fontSize: 20,
+              color, textShadow: `0 0 10px ${color}88`, marginTop: 'auto',
+            }}>{fmt(p.price)}</div>
+            {p.spike && (
+              <div style={{ fontFamily: DW.mono, fontSize: 8, color,
+                          textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                {spikeHot ? '▲' : '▼'} {p.spike.tag}
+              </div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Ticker variant — scrolling Bloomberg style
+function MarketTicker({ state, prices, onOpenTrade }) {
+  const history = state.priceHistory[state.city] || {};
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {DW_DRUGS.map((drug, i) => {
+        const p = prices[drug.id];
+        const prev = (history[drug.id] || [])[history[drug.id]?.length - 1];
+        const change = prev ? ((p.price - prev) / prev * 100) : 0;
+        const held = state.inventory[drug.id] || 0;
+        const up = change >= 0;
+        const color = p.spike?.kind === 'spike' ? DW.lime :
+                      p.spike?.kind === 'crash' ? DW.cyan :
+                      up ? DW.good : DW.danger;
+        return (
+          <button
+            key={drug.id}
+            onClick={() => { DWAudio.tap(); onOpenTrade(drug.id); }}
+            disabled={!p.available}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '24px 1fr 50px 50px 50px',
+              alignItems: 'center', gap: 8,
+              padding: '8px 10px',
+              background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              color: '#fff', cursor: p.available ? 'pointer' : 'not-allowed',
+              opacity: p.available ? 1 : 0.3,
+              fontFamily: DW.mono,
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ fontSize: 16 }}>{drug.emoji}</div>
+            <div>
+              <div style={{
+                fontFamily: DW.display, fontSize: 13, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.05em',
+              }}>{drug.name}</div>
+              {held > 0 && <div style={{ fontSize: 8, color: DW.magenta }}>×{held}</div>}
+            </div>
+            <div style={{
+              fontSize: 13, fontFamily: DW.display, fontWeight: 800,
+              color, textAlign: 'right',
+            }}>{fmt(p.price)}</div>
+            <div style={{
+              fontSize: 10, color, textAlign: 'right',
+            }}>
+              {up ? '▲' : '▼'} {Math.abs(change).toFixed(1)}%
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Spark values={history[drug.id]} color={color} width={42} height={14}/>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Buy/Sell Trade Sheet ───────────────────────────────────
+function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
+  const [mode, setMode] = React.useState('buy');
+  const [qty, setQty] = React.useState(1);
+
+  const id = tradeCtx?.drugId;
+  React.useEffect(() => {
+    setMode('buy');
+    setQty(1);
+  }, [id]);
+
+  // Always render (Sheet handles closed state via transform) — but we need drug data
+  // Use fallback drug/price when tradeCtx null so hooks stay consistent
+  const drug = id ? drugOf(id) : DW_DRUGS[0];
+  const p = id ? state.prices[state.city][drug.id] : { price: 0, available: true };
+  const held = id ? (state.inventory[drug.id] || 0) : 0;
+  const load = getLoad(state.inventory);
+  const space = DW_CONFIG.trenchCapacity - load;
+  const maxBuy = p.price > 0 ? Math.min(space, Math.floor(state.cash / p.price)) : 0;
+  const maxSell = held;
+  const max = mode === 'buy' ? maxBuy : maxSell;
+  const safeQty = Math.min(Math.max(0, qty), max);
+  const total = p.price * safeQty;
+
+  const color = p.spike?.kind === 'spike' ? DW.lime :
+                p.spike?.kind === 'crash' ? DW.cyan : DW.magenta;
+
+  const exec = () => {
+    if (safeQty <= 0 || safeQty > max) return;
+    if (mode === 'buy') {
+      dispatch({ type: 'BUY', drugId: drug.id, qty: safeQty });
+      DWAudio.cashRegister();
+    } else {
+      dispatch({ type: 'SELL', drugId: drug.id, qty: safeQty });
+      DWAudio.cashRegister();
+    }
+    onClose();
+  };
+
+  return (
+    <Sheet open={!!tradeCtx} onClose={onClose} color={color}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        marginBottom: 14, marginTop: -6,
+      }}>
+        <div style={{
+          fontSize: 42, lineHeight: 1,
+          filter: `drop-shadow(0 0 16px ${color})`,
+        }}>{drug.emoji}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{
+            fontFamily: DW.display, fontWeight: 800, fontSize: 22,
+            color: '#fff', textTransform: 'uppercase', lineHeight: 1,
+          }}>{drug.name}</div>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10,
+            color: 'rgba(255,255,255,0.5)', marginTop: 3,
+            letterSpacing: '0.1em', textTransform: 'uppercase',
+          }}>{cityName(state.city)} · Day {state.day}</div>
+          {p.spike && (
+            <div style={{
+              fontFamily: DW.mono, fontSize: 10,
+              color, textTransform: 'uppercase',
+              letterSpacing: '0.1em', marginTop: 4,
+              animation: 'dw-pulse 1.2s infinite',
+            }}>◉ {p.spike.tag} — {p.spike.kind === 'spike' ? 'spiked' : 'crashed'}</div>
+          )}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{
+            fontFamily: DW.display, fontSize: 20, fontWeight: 800, color,
+            textShadow: `0 0 12px ${color}`,
+          }}>{fmt(p.price)}</div>
+          <div style={{ fontSize: 8, fontFamily: DW.mono, color: 'rgba(255,255,255,0.4)',
+                        letterSpacing: '0.14em' }}>PER UNIT</div>
+        </div>
+      </div>
+
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+        {['buy', 'sell'].map(m => (
+          <button
+            key={m}
+            onClick={() => { DWAudio.tap(); setMode(m); setQty(1); }}
+            style={{
+              flex: 1, padding: '8px', border: '1px solid',
+              borderColor: mode === m ? (m === 'buy' ? DW.lime : DW.magenta) : 'rgba(255,255,255,0.12)',
+              background: mode === m ? (m === 'buy' ? DW.lime+'22' : DW.magenta+'22') : 'transparent',
+              color: '#fff', fontFamily: DW.display, fontWeight: 700, fontSize: 12,
+              textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 3,
+              cursor: 'pointer',
+              boxShadow: mode === m ? `0 0 14px ${m === 'buy' ? DW.lime : DW.magenta}55` : 'none',
+            }}
+          >
+            {m === 'buy' ? `Buy (${fmt(state.cash)} cash)` : `Sell (Holding ${held})`}
+          </button>
+        ))}
+      </div>
+
+      {/* Qty */}
+      <div style={{ marginBottom: 16 }}>
+        <BigSlider
+          value={safeQty}
+          onChange={setQty}
+          min={0}
+          max={Math.max(1, max)}
+          color={color}
+        />
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', marginTop: 8,
+          fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.5)',
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+        }}>
+          <span>0</span>
+          <span style={{
+            fontFamily: DW.display, fontSize: 28, color: '#fff',
+            textShadow: `0 0 14px ${color}`, fontWeight: 800,
+          }}>{safeQty}</span>
+          <span>MAX {max}</span>
+        </div>
+      </div>
+
+      {/* Quick qty */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
+        {[
+          { label: '−10', act: () => setQty(Math.max(0, safeQty - 10)) },
+          { label: '−1',  act: () => setQty(Math.max(0, safeQty - 1)) },
+          { label: '+1',  act: () => setQty(Math.min(max, safeQty + 1)) },
+          { label: '+10', act: () => setQty(Math.min(max, safeQty + 10)) },
+          { label: 'MAX', act: () => setQty(max) },
+        ].map(b => (
+          <button key={b.label} onClick={() => { DWAudio.tap(); b.act(); }}
+            style={{
+              flex: 1, padding: '6px 0', border: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.03)', color: '#fff',
+              fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.08em',
+              borderRadius: 2, cursor: 'pointer', fontWeight: 700,
+            }}
+          >{b.label}</button>
+        ))}
+      </div>
+
+      {/* Preview */}
+      <div style={{
+        padding: '12px 14px', marginBottom: 16,
+        background: 'rgba(255,255,255,0.03)',
+        border: `1px solid ${color}44`, borderRadius: 3,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{
+              fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.5)',
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+            }}>{mode === 'buy' ? 'Total cost' : 'You get'}</div>
+            <div style={{
+              fontFamily: DW.display, fontWeight: 800, fontSize: 28, color: '#fff',
+              textShadow: `0 0 14px ${mode === 'buy' ? DW.danger : DW.good}`,
+            }}>{mode === 'buy' ? '−' : '+'}{fmtFull(total)}</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{
+              fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.5)',
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+            }}>After</div>
+            <div style={{ fontFamily: DW.display, fontWeight: 700, fontSize: 16, color: DW.lime }}>
+              {fmtFull(mode === 'buy' ? state.cash - total : state.cash + total)}
+            </div>
+            <div style={{ fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+              load {mode === 'buy' ? load + safeQty : load - safeQty}/{DW_CONFIG.trenchCapacity}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <NeonBtn
+        color={mode === 'buy' ? DW.lime : DW.magenta}
+        disabled={safeQty <= 0 || safeQty > max}
+        onClick={exec}
+        style={{ width: '100%' }}
+      >
+        {mode === 'buy' ? `Buy ${safeQty}× ${drug.name}` : `Sell ${safeQty}× ${drug.name}`}
+      </NeonBtn>
+    </Sheet>
+  );
+}
+
+// ── Inventory / Trenchcoat ─────────────────────────────────
+function InventoryScreen({ state, dispatch, onOpenTrade }) {
+  const load = getLoad(state.inventory);
+  const entries = Object.entries(state.inventory).filter(([, q]) => q > 0);
+  const inventoryValue = entries.reduce((sum, [id, q]) => {
+    const p = state.prices[state.city][id];
+    return sum + p.price * q;
+  }, 0);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.ink }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.1 }}>
+        <CityScene id={state.city} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.75), rgba(10,1,24,0.98))',
+      }}/>
+
+      <HUDBar state={state} />
+
+      <div style={{
+        position: 'absolute', top: 112, left: 0, right: 0, bottom: 100,
+        padding: '0 16px', overflow: 'auto',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '4px 0 10px' }}>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em',
+            color: DW.magenta, textTransform: 'uppercase',
+          }}>TRENCHCOAT · POCKETS OF A LIFE</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 28, fontWeight: 800, color: '#fff',
+            textShadow: `0 0 14px ${DW.magenta}`, lineHeight: 1,
+            textTransform: 'uppercase',
+          }}>The Stash</div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+          gap: 8, marginBottom: 18,
+          padding: '12px 14px',
+          background: 'rgba(255,255,255,0.03)', borderRadius: 3,
+          border: `1px solid ${DW.magenta}33`,
+        }}>
+          <div>
+            <div style={iStatLabel}>Capacity</div>
+            <div style={iStatVal(DW.magenta)}>{load}/{DW_CONFIG.trenchCapacity}</div>
+          </div>
+          <div>
+            <div style={iStatLabel}>Value here</div>
+            <div style={iStatVal(DW.lime)}>{fmt(inventoryValue)}</div>
+          </div>
+          <div>
+            <div style={iStatLabel}>Health</div>
+            <div style={iStatVal(state.health > 60 ? DW.good : state.health > 30 ? DW.gold : DW.danger)}>
+              {state.health}%
+            </div>
+          </div>
+        </div>
+
+        {/* Capacity bar */}
+        <div style={{
+          height: 10, background: 'rgba(255,255,255,0.06)',
+          borderRadius: 5, overflow: 'hidden', marginBottom: 20,
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}>
+          <div style={{
+            width: `${Math.min(100, load / DW_CONFIG.trenchCapacity * 100)}%`,
+            height: '100%',
+            background: load > 80 ? `linear-gradient(90deg, ${DW.gold}, ${DW.danger})` :
+                                    `linear-gradient(90deg, ${DW.cyan}, ${DW.magenta})`,
+            boxShadow: `0 0 12px ${load > 80 ? DW.danger : DW.magenta}`,
+            transition: 'width 400ms',
+          }}/>
+        </div>
+
+        {entries.length === 0 && (
+          <div style={{
+            padding: '40px 20px', textAlign: 'center',
+            fontFamily: DW.body, color: 'rgba(255,255,255,0.4)',
+            fontStyle: 'italic',
+          }}>
+            Your pockets are empty.<br/>
+            <span style={{ fontSize: 11, marginTop: 6, display: 'block' }}>
+              Hit the market to start stacking.
+            </span>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {entries.map(([id, qty]) => {
+            const drug = drugOf(id);
+            if (!drug) return null;
+            const p = state.prices[state.city][id];
+            const value = p.price * qty;
+            return (
+              <button
+                key={id}
+                onClick={() => { DWAudio.tap(); onOpenTrade(id); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 12px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 3, cursor: 'pointer',
+                  color: '#fff', textAlign: 'left',
+                }}
+              >
+                <div style={{
+                  fontSize: 26,
+                  filter: `drop-shadow(0 0 8px ${DW.magenta}88)`,
+                }}>{drug.emoji}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{
+                    fontFamily: DW.display, fontWeight: 700, fontSize: 14,
+                    textTransform: 'uppercase',
+                  }}>{drug.name}</div>
+                  <div style={{
+                    fontFamily: DW.mono, fontSize: 10,
+                    color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                  }}>×{qty} · worth {fmt(value)} here</div>
+                </div>
+                <div style={{
+                  fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.12em',
+                  color: DW.cyan, textTransform: 'uppercase',
+                  padding: '4px 8px', border: `1px solid ${DW.cyan}55`,
+                  borderRadius: 2,
+                }}>Trade</div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Debt/bank */}
+        <div style={{
+          marginTop: 20, padding: '12px 14px',
+          background: 'rgba(255,48,100,0.06)',
+          border: `1px solid ${DW.danger}55`, borderRadius: 3,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={iStatLabel}>🦈 The Shark is Watching</div>
+              <div style={{
+                fontFamily: DW.display, fontSize: 22, fontWeight: 800, color: DW.danger,
+                textShadow: `0 0 12px ${DW.danger}`, marginTop: 4,
+              }}>{fmtFull(state.debt)}</div>
+              <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.5)',
+                            marginTop: 2, letterSpacing: '0.1em' }}>
+                +{Math.round(DW_CONFIG.debtInterest*100)}% PER DAY
+              </div>
+            </div>
+            <NeonBtn
+              color={DW.danger}
+              small
+              disabled={state.cash <= 0 || state.debt <= 0}
+              onClick={() => {
+                const amt = Math.min(state.cash, state.debt);
+                dispatch({ type: 'PAY_DEBT', amount: amt });
+                DWAudio.cashRegister();
+              }}
+            >Pay All ({fmt(Math.min(state.cash, state.debt))})</NeonBtn>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+const iStatLabel = {
+  fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
+  color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
+};
+const iStatVal = (color) => ({
+  fontFamily: DW.display, fontSize: 18, fontWeight: 800,
+  color: '#fff', textShadow: `0 0 10px ${color}`, marginTop: 2,
+});
+
+// ── Travel / Map ───────────────────────────────────────────
+function TravelScreen({ state, dispatch, mapVariant = 'stylized' }) {
+  const [selected, setSelected] = React.useState(null);
+
+  const go = () => {
+    if (!selected || selected === state.city) return;
+    DWAudio.whoosh();
+    dispatch({ type: 'TRAVEL', cityId: selected });
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.night }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.25 }}>
+        <CityScene id={state.city} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.8), rgba(10,1,24,0.98))',
+      }}/>
+
+      <HUDBar state={state} />
+
+      <div style={{
+        position: 'absolute', top: 112, left: 0, right: 0, bottom: 180,
+        padding: '0 16px', overflow: 'auto',
+      }}>
+        <div style={{ padding: '4px 0 12px' }}>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em',
+            color: DW.cyan, textTransform: 'uppercase',
+          }}>DEPARTURES · NEXT DAY</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 28, fontWeight: 800, color: '#fff',
+            textShadow: `0 0 14px ${DW.cyan}`, lineHeight: 1,
+            textTransform: 'uppercase',
+          }}>Where to?</div>
+          <div style={{ fontFamily: DW.body, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>
+            Every jump rerolls prices and eats a day. The Shark is counting.
+          </div>
+        </div>
+
+        {mapVariant === 'stylized' && (
+          <TravelStylized state={state} selected={selected} onSelect={setSelected}/>
+        )}
+        {mapVariant === 'grid' && (
+          <TravelGrid state={state} selected={selected} onSelect={setSelected}/>
+        )}
+        {mapVariant === 'routes' && (
+          <TravelRoutes state={state} selected={selected} onSelect={setSelected}/>
+        )}
+      </div>
+
+      {/* Bottom travel cta */}
+      <div style={{
+        position: 'absolute', bottom: 100, left: 0, right: 0,
+        padding: '0 16px', zIndex: 25,
+      }}>
+        <NeonBtn
+          color={DW.cyan}
+          disabled={!selected || selected === state.city}
+          onClick={go}
+          style={{ width: '100%' }}
+        >
+          {selected && selected !== state.city
+            ? `✈ Fly to ${cityName(selected)} · Day ${state.day + 1}`
+            : selected === state.city ? 'You are already here' : 'Pick a destination'}
+        </NeonBtn>
+      </div>
+    </div>
+  );
+}
+
+// Stylized cards variant
+function TravelStylized({ state, selected, onSelect }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      {DW_CITIES.map(city => {
+        const here = city.id === state.city;
+        const sel = selected === city.id;
+        return (
+          <button
+            key={city.id}
+            onClick={() => { DWAudio.tap(); onSelect(city.id); }}
+            style={{
+              position: 'relative', padding: 0, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              height: 120, borderRadius: 4, overflow: 'hidden',
+              outline: sel ? `2px solid ${city.accent}` : here ? `1.5px solid ${DW.lime}` : '1px solid rgba(255,255,255,0.1)',
+              boxShadow: sel ? `0 0 22px ${city.accent}aa` : 'none',
+              transition: 'all 180ms',
+              transform: sel ? 'scale(1.02)' : 'scale(1)',
+            }}
+          >
+            <div style={{ position: 'absolute', inset: 0 }}>
+              <CityScene id={city.id} />
+            </div>
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: `linear-gradient(0deg, rgba(10,1,24,0.9) 0%, rgba(10,1,24,0.2) 60%)`,
+            }}/>
+            <div style={{
+              position: 'absolute', left: 8, bottom: 8, right: 8,
+              textAlign: 'left',
+            }}>
+              <div style={{
+                fontFamily: DW.mono, fontSize: 9, color: city.accent,
+                letterSpacing: '0.16em', textTransform: 'uppercase',
+              }}>{city.code} · {city.temp}°</div>
+              <div style={{
+                fontFamily: DW.display, fontSize: 16, fontWeight: 800, color: '#fff',
+                textShadow: `0 0 10px ${city.accent}`, lineHeight: 1,
+                textTransform: 'uppercase',
+              }}>{city.name}</div>
+            </div>
+            {here && (
+              <div style={{
+                position: 'absolute', top: 8, right: 8,
+                padding: '3px 7px', background: `${DW.lime}dd`, color: '#0a0118',
+                fontFamily: DW.mono, fontSize: 9, fontWeight: 800,
+                letterSpacing: '0.12em', borderRadius: 2,
+              }}>YOU ARE HERE</div>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Grid variant — pure data table
+function TravelGrid({ state, selected, onSelect }) {
+  // For each city, compute avg price vs current city to hint arbitrage
+  const currentPrices = state.prices[state.city];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {DW_CITIES.map(city => {
+        const here = city.id === state.city;
+        const sel = selected === city.id;
+        const prices = state.prices[city.id];
+        // pick top 3 deltas for items you're holding
+        const holds = Object.keys(state.inventory).filter(k => state.inventory[k] > 0);
+        let bestDelta = 0, bestDrug = null;
+        holds.forEach(id => {
+          const delta = prices[id].price - currentPrices[id].price;
+          if (delta > bestDelta) { bestDelta = delta; bestDrug = id; }
+        });
+        return (
+          <button
+            key={city.id}
+            onClick={() => { DWAudio.tap(); onSelect(city.id); }}
+            style={{
+              display: 'grid', gridTemplateColumns: '22px 1fr auto 44px',
+              alignItems: 'center', gap: 10,
+              padding: '10px 12px',
+              background: sel ? `${city.accent}22` : 'rgba(255,255,255,0.03)',
+              border: sel ? `1px solid ${city.accent}` : here ? `1px solid ${DW.lime}88` : '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 3, color: '#fff', textAlign: 'left',
+              cursor: 'pointer',
+              boxShadow: sel ? `0 0 16px ${city.accent}66` : 'none',
+            }}
+          >
+            <div style={{
+              width: 16, height: 16, borderRadius: '50%',
+              background: city.accent, boxShadow: `0 0 10px ${city.accent}`,
+            }}/>
+            <div>
+              <div style={{
+                fontFamily: DW.display, fontSize: 15, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.02em',
+              }}>{city.name}</div>
+              <div style={{
+                fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.5)',
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+              }}>{city.code} · {city.temp}° · {city.mood}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              {bestDrug ? (
+                <>
+                  <div style={{
+                    fontFamily: DW.display, fontSize: 13, fontWeight: 800, color: DW.good,
+                  }}>+{fmt(bestDelta)}</div>
+                  <div style={{
+                    fontFamily: DW.mono, fontSize: 8, color: 'rgba(255,255,255,0.5)',
+                    letterSpacing: '0.1em', textTransform: 'uppercase',
+                  }}>per {drugOf(bestDrug).name}</div>
+                </>
+              ) : (
+                <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.3)',
+                              letterSpacing: '0.1em' }}>—</div>
+              )}
+            </div>
+            <div style={{
+              fontFamily: DW.mono, fontSize: 9, color: here ? DW.lime : 'rgba(255,255,255,0.5)',
+              textAlign: 'right', letterSpacing: '0.1em',
+            }}>{here ? 'HERE' : `→`}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Routes variant — airline route lines on a stylized map
+function TravelRoutes({ state, selected, onSelect }) {
+  // Lay cities on a world-ish map grid (relative coords in %)
+  const layout = {
+    la:  { x: 12, y: 45 },
+    mex: { x: 22, y: 62 },
+    nyc: { x: 32, y: 38 },
+    mia: { x: 28, y: 58 },
+    ber: { x: 58, y: 32 },
+    tyo: { x: 86, y: 46 },
+  };
+  const w = 358, h = 280;
+  const here = layout[state.city];
+  return (
+    <div style={{
+      position: 'relative', width: '100%', height: h,
+      background: 'rgba(0,229,255,0.04)',
+      border: '1px solid rgba(0,229,255,0.18)',
+      borderRadius: 4, overflow: 'hidden',
+    }}>
+      {/* grid */}
+      <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
+        <defs>
+          <pattern id="world-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke={DW.cyan} strokeWidth="0.5" opacity="0.15"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#world-grid)"/>
+        {/* dashed "equator" line */}
+        <line x1="0" y1="50%" x2="100%" y2="50%" stroke={DW.cyan} strokeWidth="0.5" strokeDasharray="4 6" opacity="0.3"/>
+        {/* routes */}
+        {DW_CITIES.filter(c => c.id !== state.city).map(c => {
+          const to = layout[c.id];
+          const sel = selected === c.id;
+          return (
+            <line
+              key={c.id}
+              x1={`${here.x}%`} y1={`${here.y}%`}
+              x2={`${to.x}%`} y2={`${to.y}%`}
+              stroke={sel ? c.accent : DW.cyan}
+              strokeWidth={sel ? 2 : 0.8}
+              strokeDasharray={sel ? '0' : '3 4'}
+              opacity={sel ? 1 : 0.5}
+              style={{ filter: sel ? `drop-shadow(0 0 4px ${c.accent})` : 'none' }}
+            />
+          );
+        })}
+      </svg>
+      {/* city dots */}
+      {DW_CITIES.map(c => {
+        const pos = layout[c.id];
+        const isHere = c.id === state.city;
+        const sel = selected === c.id;
+        return (
+          <button
+            key={c.id}
+            onClick={() => { DWAudio.tap(); onSelect(c.id); }}
+            style={{
+              position: 'absolute',
+              left: `calc(${pos.x}% - 14px)`, top: `calc(${pos.y}% - 14px)`,
+              width: 28, height: 28, borderRadius: '50%',
+              border: `2px solid ${isHere ? DW.lime : sel ? c.accent : c.accent}`,
+              background: sel || isHere ? c.accent : `${c.accent}44`,
+              cursor: 'pointer',
+              boxShadow: (sel || isHere) ? `0 0 14px ${c.accent}, 0 0 30px ${c.accent}77` : 'none',
+              padding: 0, transition: 'all 180ms',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: DW.mono, fontSize: 9, fontWeight: 800, color: '#0a0118',
+            }}
+          >
+            {isHere ? '●' : ''}
+          </button>
+        );
+      })}
+      {/* labels */}
+      {DW_CITIES.map(c => {
+        const pos = layout[c.id];
+        return (
+          <div
+            key={c.id + '-l'}
+            style={{
+              position: 'absolute',
+              left: `calc(${pos.x}% + 16px)`, top: `calc(${pos.y}% + 4px)`,
+              fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
+              color: selected === c.id ? c.accent : 'rgba(255,255,255,0.75)',
+              textTransform: 'uppercase', pointerEvents: 'none',
+              textShadow: '0 0 4px rgba(0,0,0,0.8)',
+            }}
+          >{c.code}</div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Events ─────────────────────────────────────────────────
+function EventScreen({ state, dispatch }) {
+  const ev = state.pendingEvent;
+  if (!ev) return null;
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, background: DW.ink,
+      overflow: 'hidden',
+      animation: 'dw-fadeup 400ms ease-out',
+    }}>
+      {/* background hazard stripes */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `repeating-linear-gradient(135deg, ${DW.danger}08 0 20px, transparent 20px 40px)`,
+      }}/>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'radial-gradient(circle at 50% 30%, rgba(255,48,100,0.25), transparent 60%)',
+      }}/>
+
+      <StatusBar/>
+
+      <div style={{
+        position: 'absolute', top: 60, left: 0, right: 0, padding: '20px 24px',
+      }}>
+        <div style={{
+          fontFamily: DW.mono, fontSize: 11, letterSpacing: '0.28em',
+          color: DW.danger, textTransform: 'uppercase',
+          animation: 'dw-pulse 1.2s infinite',
+        }}>◉ INCIDENT · DAY {state.day}</div>
+      </div>
+
+      <div style={{
+        position: 'absolute', top: '32%', left: 0, right: 0,
+        textAlign: 'center', padding: '0 24px',
+      }}>
+        <div style={{
+          fontSize: 80, lineHeight: 1, marginBottom: 16,
+          filter: `drop-shadow(0 0 24px ${DW.danger})`,
+        }}>{ev.icon}</div>
+        <div style={{
+          fontFamily: DW.display, fontSize: 34, fontWeight: 800, color: '#fff',
+          textShadow: `0 0 16px ${DW.danger}`, lineHeight: 0.95,
+          textTransform: 'uppercase', marginBottom: 14,
+        }}>{ev.title}</div>
+        <div style={{
+          fontFamily: DW.body, fontSize: 14, color: 'rgba(255,255,255,0.8)',
+          lineHeight: 1.5, maxWidth: 320, margin: '0 auto',
+        }}>{ev.body}</div>
+      </div>
+
+      <div style={{
+        position: 'absolute', bottom: 40, left: 0, right: 0,
+        padding: '0 24px',
+        display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        {ev.options.map((opt, i) => (
+          <NeonBtn
+            key={i}
+            color={i === 0 ? DW.magenta : DW.cyan}
+            onClick={() => {
+              DWAudio.confirm();
+              dispatch({ type: 'RESOLVE_EVENT', consequence: opt.consequence });
+            }}
+            style={{ width: '100%', padding: '16px' }}
+          >{opt.label}</NeonBtn>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Phone / Messages ───────────────────────────────────────
+function PhoneScreen({ state, dispatch }) {
+  React.useEffect(() => {
+    // Mark all read when they open the phone
+    const unread = state.messages.some(m => !m.read);
+    if (unread) {
+      const t = setTimeout(() => dispatch({ type: 'MARK_READ' }), 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  // Group messages by contact
+  const byContact = {};
+  state.messages.forEach(m => {
+    if (!byContact[m.from]) byContact[m.from] = [];
+    byContact[m.from].push(m);
+  });
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.ink }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
+        <CityScene id={state.city} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.75), rgba(10,1,24,0.98))',
+      }}/>
+
+      <HUDBar state={state} />
+
+      <div style={{
+        position: 'absolute', top: 112, left: 0, right: 0, bottom: 100,
+        padding: '0 16px', overflow: 'auto',
+      }}>
+        <div style={{ padding: '4px 0 14px' }}>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em',
+            color: DW.sunset, textTransform: 'uppercase',
+          }}>INBOX · {state.messages.length} MSGS</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 28, fontWeight: 800, color: '#fff',
+            textShadow: `0 0 14px ${DW.sunset}`, lineHeight: 1,
+            textTransform: 'uppercase',
+          }}>Messages</div>
+        </div>
+
+        {state.messages.length === 0 && (
+          <div style={{
+            padding: '40px 20px', textAlign: 'center',
+            fontFamily: DW.body, color: 'rgba(255,255,255,0.4)',
+            fontStyle: 'italic',
+          }}>
+            Nobody's pinged you yet.<br/>
+            <span style={{ fontSize: 11, marginTop: 6, display: 'block' }}>
+              Travel to trigger contacts.
+            </span>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {state.messages.map((m, i) => {
+            const c = CONTACTS[m.from] || { name: m.from, emoji: '👤', color: '#fff' };
+            return (
+              <div key={i} style={{
+                padding: '10px 12px',
+                background: 'rgba(255,255,255,0.03)',
+                border: `1px solid ${c.color}33`,
+                borderRadius: 3,
+                display: 'flex', gap: 10, alignItems: 'flex-start',
+                animation: !m.read ? 'dw-fadeup 400ms ease-out' : 'none',
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: `${c.color}22`, border: `1.5px solid ${c.color}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 18, flexShrink: 0,
+                  boxShadow: `0 0 10px ${c.color}66`,
+                }}>{c.emoji}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{
+                      fontFamily: DW.display, fontWeight: 700, fontSize: 13, color: '#fff',
+                      textTransform: 'uppercase', letterSpacing: '0.04em',
+                    }}>{c.name}</div>
+                    <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.4)',
+                                  letterSpacing: '0.1em' }}>D{m.day}</div>
+                  </div>
+                  <div style={{
+                    fontFamily: DW.body, fontSize: 13, color: 'rgba(255,255,255,0.85)',
+                    lineHeight: 1.4, marginTop: 3,
+                  }}>{m.text}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── End of Day Summary ─────────────────────────────────────
+function EndOfDayScreen({ state, dispatch }) {
+  const [stage, setStage] = React.useState(0);
+  React.useEffect(() => {
+    const timers = [];
+    timers.push(setTimeout(() => { setStage(1); DWAudio.tap(); }, 400));
+    timers.push(setTimeout(() => { setStage(2); DWAudio.tap(); }, 1000));
+    timers.push(setTimeout(() => { setStage(3); DWAudio.cashRegister(); }, 1700));
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  const city = DW_CITIES.find(c => c.id === state.city);
+  const recent = state.log.slice(0, 4);
+  const netWorth = state.cash + state.bank - state.debt;
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.ink }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.35 }}>
+        <CityScene id={state.city} />
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.45) 0%, rgba(10,1,24,0.95) 70%)',
+      }}/>
+
+      <StatusBar/>
+
+      <div style={{
+        position: 'absolute', top: 60, left: 0, right: 0, bottom: 40,
+        padding: '20px 24px', display: 'flex', flexDirection: 'column',
+        overflowY: 'auto',
+      }}>
+        {/* Day title */}
+        <div style={{ marginBottom: 20, animation: 'dw-fadeup 500ms ease-out' }}>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.28em',
+            color: city.accent, textTransform: 'uppercase',
+          }}>DAY {state.day} · {city.code}</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 52, fontWeight: 800, color: '#fff',
+            textShadow: `0 0 22px ${city.accent}`, lineHeight: 0.9,
+            textTransform: 'uppercase', marginTop: 4,
+          }}>Touchdown.</div>
+          <div style={{ fontFamily: DW.body, fontSize: 13, color: 'rgba(255,255,255,0.6)',
+                        marginTop: 8, fontStyle: 'italic' }}>
+            The plane taxis. You check the bag. You check the burner. Everything's where it should be.
+          </div>
+        </div>
+
+        {/* Stat reveal */}
+        <div style={{
+          padding: '16px 18px', marginBottom: 16,
+          background: 'rgba(255,255,255,0.05)',
+          border: `1px solid ${DW.lime}55`, borderRadius: 4,
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14,
+        }}>
+          <RevealRow label="Cash on hand" value={fmtFull(state.cash)} color={DW.lime} shown={stage >= 1}/>
+          <RevealRow label="Debt" value={fmtFull(state.debt)} color={DW.danger} shown={stage >= 1}/>
+          <RevealRow label="Load" value={`${getLoad(state.inventory)} / ${DW_CONFIG.trenchCapacity}`} color={DW.magenta} shown={stage >= 2}/>
+          <RevealRow label="Heat" value={state.heat} color={DW.gold} shown={stage >= 2}/>
+          <div style={{ gridColumn: '1 / span 2',
+                        paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <RevealRow
+              label="Net worth"
+              value={fmtFull(netWorth)}
+              color={netWorth >= 0 ? DW.good : DW.danger}
+              big
+              shown={stage >= 3}
+            />
+          </div>
+        </div>
+
+        {/* Recent log */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.2em',
+            color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
+            marginBottom: 8,
+          }}>Recent chatter</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {recent.map((l, i) => (
+              <div key={i} style={{
+                fontFamily: DW.mono, fontSize: 11, color: 'rgba(255,255,255,0.7)',
+                padding: '4px 0', borderLeft: `2px solid ${logColor(l.kind)}`,
+                paddingLeft: 10,
+                opacity: stage >= 3 ? 1 : 0,
+                transition: `opacity 400ms ${i * 120}ms`,
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.4)', marginRight: 6 }}>D{l.day}</span>
+                {l.text}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <NeonBtn
+            color={DW.lime}
+            onClick={() => { DWAudio.confirm(); dispatch({ type: 'GOTO', screen: 'market' }); }}
+            style={{ width: '100%' }}
+          >▸ Hit the Market</NeonBtn>
+          <NeonBtn
+            color={DW.cyan}
+            ghost
+            small
+            onClick={() => { DWAudio.tap(); dispatch({ type: 'GOTO', screen: 'phone' }); }}
+            style={{ width: '100%' }}
+          >Check messages ({state.messages.filter(m => !m.read).length})</NeonBtn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RevealRow({ label, value, color, shown, big }) {
+  return (
+    <div style={{
+      opacity: shown ? 1 : 0, transform: shown ? 'translateY(0)' : 'translateY(8px)',
+      transition: 'all 400ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+    }}>
+      <div style={{
+        fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
+        color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
+      }}>{label}</div>
+      <div style={{
+        fontFamily: DW.display, fontSize: big ? 32 : 18, fontWeight: 800,
+        color: '#fff', textShadow: `0 0 ${big ? 18 : 10}px ${color}`,
+        marginTop: 2,
+      }}>{value}</div>
+    </div>
+  );
+}
+
+function logColor(kind) {
+  return {
+    buy: DW.cyan, sell: DW.lime, travel: DW.magenta,
+    good: DW.good, bad: DW.danger, ok: DW.gold, debt: DW.danger,
+    intro: DW.cyan,
+  }[kind] || DW.magenta;
+}
+
+// ── Game Over ──────────────────────────────────────────────
+function GameOverScreen({ state, dispatch }) {
+  const { how, netWorth, verdict } = state.gameOver || {};
+  React.useEffect(() => {
+    DWAudio.stopAmbient();
+    if (how === 'win') DWAudio.bigWin();
+    else DWAudio.lose();
+  }, []);
+  const lines = {
+    legend: { head: 'Legend.', sub: 'The Shark sends flowers. Everyone wants to know your name.' },
+    baller: { head: 'You Made Bank.', sub: 'Not retirement money, but close enough to disappear.' },
+    survivor: { head: 'Just Barely.', sub: 'You walked out. That\'s more than most.' },
+    broke: { head: 'Ate It.', sub: 'The Shark is on the phone. You know what he wants.' },
+  };
+  const jail = { head: 'Caught.', sub: 'Next sunset will be through bars.' };
+  const t = how === 'jail' ? jail : lines[verdict];
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: `linear-gradient(180deg, ${DW.violet}, ${DW.ink} 60%)`,
+      overflow: 'hidden',
+    }}>
+      <CityScene id="mia" />
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(180deg, rgba(10,1,24,0.75), rgba(10,1,24,0.98))',
+      }}/>
+
+      <div style={{
+        position: 'absolute', top: '20%', left: 0, right: 0,
+        textAlign: 'center', padding: '0 24px',
+        animation: 'dw-fadeup 700ms ease-out',
+      }}>
+        <div style={{
+          fontFamily: DW.mono, fontSize: 11, letterSpacing: '0.3em',
+          color: how === 'jail' ? DW.danger : verdict === 'broke' ? DW.danger : DW.lime,
+          textTransform: 'uppercase', marginBottom: 12,
+        }}>DAY {state.day} · END OF THE ROAD</div>
+        <div style={{
+          fontFamily: DW.display, fontSize: 56, fontWeight: 800, color: '#fff',
+          textShadow: `0 0 28px ${how === 'jail' || verdict === 'broke' ? DW.danger : DW.lime}`,
+          lineHeight: 0.9, textTransform: 'uppercase',
+          marginBottom: 16,
+        }}>{t.head}</div>
+        <div style={{
+          fontFamily: DW.body, fontSize: 15, color: 'rgba(255,255,255,0.8)',
+          maxWidth: 300, margin: '0 auto', lineHeight: 1.45,
+        }}>{t.sub}</div>
+
+        <div style={{
+          marginTop: 40, padding: '16px 20px',
+          background: 'rgba(255,255,255,0.05)',
+          border: `1px solid ${DW.magenta}66`, borderRadius: 4,
+          maxWidth: 280, marginLeft: 'auto', marginRight: 'auto',
+        }}>
+          <div style={{ fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.16em',
+                        color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>
+            Final net worth
+          </div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 42, fontWeight: 800,
+            color: '#fff',
+            textShadow: `0 0 16px ${netWorth >= 0 ? DW.good : DW.danger}`,
+            marginTop: 2,
+          }}>{fmtFull(netWorth || 0)}</div>
+        </div>
+      </div>
+
+      <div style={{
+        position: 'absolute', bottom: 50, left: 0, right: 0,
+        padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        <NeonBtn color={DW.lime} onClick={() => {
+          DWAudio.confirm();
+          DWAudio.startAmbient();
+          dispatch({ type: 'START_GAME' });
+        }} style={{ width: '100%' }}>▸ Run it Back</NeonBtn>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  IntroScreen, MarketScreen, TradeSheet, InventoryScreen,
+  TravelScreen, EventScreen, PhoneScreen, EndOfDayScreen, GameOverScreen,
+});
+
+
+// ═══════════════════════════════════════════════════════════
+// proto-app.jsx
+// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// proto-app.jsx — router, iPhone frame shell, Tweaks panel
+// ═══════════════════════════════════════════════════════════
+
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "marketLayout": "grid",
+  "mapVariant": "stylized",
+  "showInIphoneFrame": true,
+  "muted": false
+}/*EDITMODE-END*/;
+
+function ProtoApp() {
+  const [state, dispatch] = React.useReducer(storeReducer, null, makeInitialState);
+  const [trade, setTrade] = React.useState(null);   // { drugId }
+  const [tweaksOpen, setTweaksOpen] = React.useState(false);
+  const [tweaks, setTweaks] = React.useState(TWEAKS);
+  const [editAvailable, setEditAvailable] = React.useState(false);
+  const [toast, setToast] = React.useState(null);
+
+  // Persist state
+  React.useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dw-proto-state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.screen) {
+          dispatch({ type: '__LOAD', state: parsed });
+        }
+      }
+    } catch (e) {}
+  }, []);
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('dw-proto-state', JSON.stringify(state));
+    } catch (e) {}
+  }, [state]);
+
+  // Ambient audio autoplay deferred until first interaction happens via buttons
+
+  // Tweak-mode protocol
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === '__activate_edit_mode') setTweaksOpen(true);
+      if (e.data.type === '__deactivate_edit_mode') setTweaksOpen(false);
+    };
+    window.addEventListener('message', handler);
+    try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) {}
+    setEditAvailable(true);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  // Sync mute
+  React.useEffect(() => {
+    DWAudio.setMuted(!!tweaks.muted);
+  }, [tweaks.muted]);
+
+  const updateTweak = (k, v) => {
+    const next = { ...tweaks, [k]: v };
+    setTweaks(next);
+    try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [k]: v } }, '*'); } catch (e) {}
+  };
+
+  // Notify user when messages arrive
+  const msgsUnread = state.messages.filter(m => !m.read).length;
+  const prevUnreadRef = React.useRef(msgsUnread);
+  React.useEffect(() => {
+    if (msgsUnread > prevUnreadRef.current) {
+      DWAudio.buzz();
+      setToast('📱 New message');
+    }
+    prevUnreadRef.current = msgsUnread;
+  }, [msgsUnread]);
+
+  const openTrade = (drugId) => setTrade({ drugId });
+  const closeTrade = () => setTrade(null);
+
+  const navigate = (screen) => { setTrade(null); dispatch({ type: 'GOTO', screen }); };
+
+  // Screen router
+  const screenContent = (() => {
+    switch (state.screen) {
+      case 'intro':
+        return <IntroScreen onStart={() => dispatch({ type: 'START_GAME' })}/>;
+      case 'market':
+        return <MarketScreen state={state} dispatch={dispatch} onOpenTrade={openTrade} layout={tweaks.marketLayout}/>;
+      case 'inventory':
+        return <InventoryScreen state={state} dispatch={dispatch} onOpenTrade={openTrade}/>;
+      case 'travel':
+        return <TravelScreen state={state} dispatch={dispatch} mapVariant={tweaks.mapVariant}/>;
+      case 'event':
+        return <EventScreen state={state} dispatch={dispatch}/>;
+      case 'phone':
+        return <PhoneScreen state={state} dispatch={dispatch}/>;
+      case 'endOfDay':
+        return <EndOfDayScreen state={state} dispatch={dispatch}/>;
+      case 'gameover':
+        return <GameOverScreen state={state} dispatch={dispatch}/>;
+      default:
+        return <IntroScreen onStart={() => dispatch({ type: 'START_GAME' })}/>;
+    }
+  })();
+
+  // Show bottom nav on gameplay screens
+  const showNav = ['market', 'inventory', 'travel', 'phone'].includes(state.screen);
+  const showStatus = state.screen !== 'event' && state.screen !== 'intro' && state.screen !== 'gameover' && state.screen !== 'endOfDay';
+
+  const phoneContent = (
+    <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
+      <UIStyles/>
+      {showStatus && <StatusBar/>}
+      {screenContent}
+      {showNav && <BottomNav screen={state.screen} onNavigate={navigate} messagesUnread={msgsUnread}/>}
+      <TradeSheet state={state} tradeCtx={trade} dispatch={dispatch} onClose={closeTrade}/>
+      <Toast msg={toast} onDone={() => setToast(null)}/>
+
+      {/* Reset floating button (always available for testing) */}
+      {state.screen !== 'intro' && (
+        <button
+          onClick={() => {
+            if (confirm('Reset the game?')) {
+              DWAudio.stopAmbient();
+              dispatch({ type: 'RESET' });
+            }
+          }}
+          style={{
+            position: 'absolute', top: 20, left: 6, zIndex: 100,
+            background: 'rgba(10,1,24,0.6)', border: `1px solid ${DW.danger}55`,
+            color: '#fff', width: 22, height: 22, borderRadius: '50%',
+            fontSize: 11, cursor: 'pointer', padding: 0,
+            fontFamily: DW.mono,
+          }}
+          title="Reset game"
+        >⟲</button>
+      )}
+
+      {/* Mute toggle */}
+      <button
+        onClick={() => updateTweak('muted', !tweaks.muted)}
+        style={{
+          position: 'absolute', top: 20, right: 6, zIndex: 100,
+          background: 'rgba(10,1,24,0.6)', border: `1px solid ${DW.cyan}55`,
+          color: '#fff', width: 22, height: 22, borderRadius: '50%',
+          fontSize: 11, cursor: 'pointer', padding: 0,
+        }}
+        title={tweaks.muted ? 'Unmute' : 'Mute'}
+      >{tweaks.muted ? '🔇' : '🔊'}</button>
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: `radial-gradient(ellipse at 30% 20%, #2a0d4e 0%, #0a0118 60%)`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
+    }}>
+      <PhoneFrame inFrame={tweaks.showInIphoneFrame}>{phoneContent}</PhoneFrame>
+
+      {tweaksOpen && (
+        <TweaksPanel tweaks={tweaks} onChange={updateTweak} onClose={() => setTweaksOpen(false)}/>
+      )}
+
+      {/* Side panel hint */}
+      <div style={{
+        position: 'fixed', top: 14, left: 14, zIndex: 200,
+        fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.4)',
+        letterSpacing: '0.16em', textTransform: 'uppercase',
+      }}>
+        DOPE WARS ⋅ PROTO v0.1
+      </div>
+    </div>
+  );
+}
+
+function TweaksPanel({ tweaks, onChange, onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', top: 14, right: 14, zIndex: 300,
+      width: 260, background: 'rgba(10,1,24,0.95)',
+      border: `1px solid ${DW.magenta}`, borderRadius: 6,
+      padding: 14, color: '#fff', fontFamily: DW.body,
+      backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+      boxShadow: `0 0 40px ${DW.magenta}55`,
+    }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: 12, paddingBottom: 8,
+        borderBottom: `1px solid ${DW.magenta}44`,
+      }}>
+        <div style={{
+          fontFamily: DW.display, fontWeight: 800, fontSize: 14,
+          textTransform: 'uppercase', letterSpacing: '0.1em',
+          textShadow: `0 0 10px ${DW.magenta}`,
+        }}>Tweaks</div>
+        <button onClick={onClose} style={{
+          background: 'transparent', border: 'none', color: '#fff',
+          fontSize: 16, cursor: 'pointer',
+        }}>×</button>
+      </div>
+
+      <TweakSelect
+        label="Market layout"
+        value={tweaks.marketLayout}
+        options={[
+          { val: 'list', label: 'List' },
+          { val: 'grid', label: 'Grid' },
+          { val: 'ticker', label: 'Ticker' },
+        ]}
+        onChange={v => onChange('marketLayout', v)}
+      />
+      <TweakSelect
+        label="Map variant"
+        value={tweaks.mapVariant}
+        options={[
+          { val: 'stylized', label: 'Stylized cards' },
+          { val: 'grid', label: 'Data list' },
+          { val: 'routes', label: 'Route map' },
+        ]}
+        onChange={v => onChange('mapVariant', v)}
+      />
+      <TweakToggle
+        label="iPhone frame"
+        value={tweaks.showInIphoneFrame}
+        onChange={v => onChange('showInIphoneFrame', v)}
+      />
+      <TweakToggle
+        label="Audio"
+        value={!tweaks.muted}
+        onChange={v => onChange('muted', !v)}
+      />
+    </div>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{
+        fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
+        color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
+        marginBottom: 5,
+      }}>{label}</div>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {options.map(o => (
+          <button
+            key={o.val}
+            onClick={() => onChange(o.val)}
+            style={{
+              flex: 1, padding: '7px 4px',
+              background: value === o.val ? `${DW.magenta}33` : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${value === o.val ? DW.magenta : 'rgba(255,255,255,0.1)'}`,
+              color: '#fff', fontFamily: DW.display, fontWeight: 700,
+              fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.06em',
+              borderRadius: 2, cursor: 'pointer',
+              boxShadow: value === o.val ? `0 0 12px ${DW.magenta}66` : 'none',
+            }}
+          >{o.label}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', marginBottom: 12 }}>
+      <div style={{
+        fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.12em',
+        color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase',
+      }}>{label}</div>
+      <button onClick={() => onChange(!value)}
+        style={{
+          width: 40, height: 22, borderRadius: 11, padding: 2,
+          background: value ? DW.magenta : 'rgba(255,255,255,0.12)',
+          border: `1px solid ${value ? DW.magenta : 'rgba(255,255,255,0.2)'}`,
+          cursor: 'pointer', transition: 'all 200ms',
+          boxShadow: value ? `0 0 10px ${DW.magenta}88` : 'none',
+        }}
+      >
+        <div style={{
+          width: 16, height: 16, borderRadius: '50%',
+          background: '#fff',
+          transform: value ? 'translateX(18px)' : 'translateX(0)',
+          transition: 'transform 200ms',
+        }}/>
+      </button>
+    </div>
+  );
+}
+
+Object.assign(window, { ProtoApp });
+
+function PhoneFrame({ inFrame, children }) {
+  const ref = React.useRef(null);
+  const [scale, setScale] = React.useState(1);
+  React.useEffect(() => {
+    const fit = () => {
+      const w = window.innerWidth, h = window.innerHeight;
+      const pad = 40;
+      const fw = inFrame ? 420 : 402;
+      const fh = inFrame ? 892 : 874;
+      setScale(Math.min(1, Math.min((w - pad) / fw, (h - pad) / fh)));
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [inFrame]);
+
+  if (inFrame) {
+    return (
+      <div ref={ref} style={{
+        width: 420, height: 892, borderRadius: 54,
+        background: '#000',
+        padding: 9,
+        boxShadow: '0 40px 120px rgba(0,0,0,0.7), 0 0 0 2px #222, 0 0 60px rgba(255,46,166,0.25)',
+        transform: `scale(${scale})`, transformOrigin: 'center center',
+        position: 'relative',
+      }}>
+        <div style={{
+          width: '100%', height: '100%', borderRadius: 46, overflow: 'hidden',
+          background: '#000', position: 'relative',
+        }}>
+          {children}
+          {/* dynamic island */}
+          <div style={{
+            position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+            width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 70,
+            border: '1px solid rgba(255,255,255,0.05)',
+          }} />
+          {/* home indicator */}
+          <div style={{
+            position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)',
+            width: 139, height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.4)',
+            zIndex: 80, pointerEvents: 'none',
+          }}/>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div ref={ref} style={{
+      width: 402, height: 874, position: 'relative',
+      border: '1px solid rgba(255,255,255,0.1)',
+      borderRadius: 20, overflow: 'hidden', background: '#000',
+      boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(255,46,166,0.2)',
+      transform: `scale(${scale})`, transformOrigin: 'center center',
+    }}>
+      {children}
+    </div>
+  );
+}
+Object.assign(window, { PhoneFrame });
+
+// Mount
+const root = ReactDOM.createRoot(document.getElementById('proto-root'));
+root.render(<ProtoApp/>);
+
+
+</script>
+</body>
+</html>
