@@ -412,7 +412,7 @@ function storeReducer(state, action) {
       return makeInitialState();
 
     case '__LOAD':
-      return action.state;
+      return { ...makeInitialState(), ...action.state };
 
     default:
       return state;

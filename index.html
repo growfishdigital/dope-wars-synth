@@ -1054,7 +1054,7 @@ function storeReducer(state, action) {
       return makeInitialState();
 
     case '__LOAD':
-      return action.state;
+      return { ...makeInitialState(), ...action.state };
 
     default:
       return state;
@@ -2191,11 +2191,12 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
   const p = id ? state.prices[state.city][drug.id] : { price: 0, available: true };
   const held = id ? (state.inventory[drug.id] || 0) : 0;
   const load = getLoad(state.inventory);
-  const space = state.trenchCapacity - load;
+  const cap = state.trenchCapacity || DW_CONFIG.baseCapacity;
+  const space = cap - load;
   const maxBuy = p.price > 0 ? Math.min(space, Math.floor(state.cash / p.price)) : 0;
   const maxSell = held;
   const max = mode === 'buy' ? maxBuy : maxSell;
-  const safeQty = Math.min(Math.max(0, qty), max);
+  const safeQty = Math.min(Math.max(0, isNaN(qty) ? 0 : qty), isNaN(max) ? 0 : max);
   const total = p.price * safeQty;
 
   // Cost basis & P&L for sell mode
@@ -2208,7 +2209,7 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
                 p.spike?.kind === 'crash' ? DW.cyan : DW.magenta;
 
   const exec = () => {
-    if (safeQty <= 0 || safeQty > max) return;
+    if (!Number.isFinite(safeQty) || safeQty <= 0 || safeQty > max) return;
     if (mode === 'buy') {
       dispatch({ type: 'BUY', drugId: drug.id, qty: safeQty });
       DWAudio.cashRegister();
@@ -2364,7 +2365,7 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
               {fmtFull(mode === 'buy' ? state.cash - total : state.cash + total)}
             </div>
             <div style={{ fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
-              load {mode === 'buy' ? load + safeQty : load - safeQty}/{state.trenchCapacity}
+              load {mode === 'buy' ? load + safeQty : load - safeQty}/{cap}
             </div>
           </div>
         </div>
