@@ -307,12 +307,18 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
   const p = id ? state.prices[state.city][drug.id] : { price: 0, available: true };
   const held = id ? (state.inventory[drug.id] || 0) : 0;
   const load = getLoad(state.inventory);
-  const space = DW_CONFIG.trenchCapacity - load;
+  const space = state.trenchCapacity - load;
   const maxBuy = p.price > 0 ? Math.min(space, Math.floor(state.cash / p.price)) : 0;
   const maxSell = held;
   const max = mode === 'buy' ? maxBuy : maxSell;
   const safeQty = Math.min(Math.max(0, qty), max);
   const total = p.price * safeQty;
+
+  // Cost basis & P&L for sell mode
+  const basisPerUnit = (state.costBasis && state.costBasis[drug?.id]) || 0;
+  const pnlPerUnit = p.price - basisPerUnit;
+  const totalPnl = pnlPerUnit * safeQty;
+  const isProfitable = pnlPerUnit >= 0;
 
   const color = p.spike?.kind === 'spike' ? DW.lime :
                 p.spike?.kind === 'crash' ? DW.cyan : DW.magenta;
@@ -356,6 +362,13 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
               letterSpacing: '0.1em', marginTop: 4,
               animation: 'dw-pulse 1.2s infinite',
             }}>◉ {p.spike.tag} — {p.spike.kind === 'spike' ? 'spiked' : 'crashed'}</div>
+          )}
+          {mode === 'sell' && basisPerUnit > 0 && (
+            <div style={{
+              fontFamily: DW.mono, fontSize: 9, marginTop: 4,
+              color: isProfitable ? DW.good : DW.danger,
+              letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}>Bought @ {fmt(basisPerUnit)}/unit</div>
           )}
         </div>
         <div style={{ textAlign: 'right' }}>
@@ -443,11 +456,20 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
             <div style={{
               fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.5)',
               letterSpacing: '0.14em', textTransform: 'uppercase',
-            }}>{mode === 'buy' ? 'Total cost' : 'You get'}</div>
+            }}>{mode === 'buy' ? 'Total cost' : 'You receive'}</div>
             <div style={{
               fontFamily: DW.display, fontWeight: 800, fontSize: 28, color: '#fff',
               textShadow: `0 0 14px ${mode === 'buy' ? DW.danger : DW.good}`,
             }}>{mode === 'buy' ? '−' : '+'}{fmtFull(total)}</div>
+            {mode === 'sell' && basisPerUnit > 0 && safeQty > 0 && (
+              <div style={{
+                fontFamily: DW.display, fontWeight: 700, fontSize: 14, marginTop: 4,
+                color: isProfitable ? DW.good : DW.danger,
+                textShadow: `0 0 10px ${isProfitable ? DW.good : DW.danger}`,
+              }}>
+                {isProfitable ? '▲' : '▼'} {isProfitable ? '+' : ''}{fmtFull(totalPnl)} P&amp;L
+              </div>
+            )}
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{
@@ -458,7 +480,7 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
               {fmtFull(mode === 'buy' ? state.cash - total : state.cash + total)}
             </div>
             <div style={{ fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
-              load {mode === 'buy' ? load + safeQty : load - safeQty}/{DW_CONFIG.trenchCapacity}
+              load {mode === 'buy' ? load + safeQty : load - safeQty}/{state.trenchCapacity}
             </div>
           </div>
         </div>
@@ -514,6 +536,42 @@ function InventoryScreen({ state, dispatch, onOpenTrade }) {
           }}>The Stash</div>
         </div>
 
+        {/* Equipment chips — gun & cop protection */}
+        {(state.hasGun || state.hasCopProtection) && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+            {state.hasGun && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 12px',
+                background: `${DW.danger}22`, border: `1px solid ${DW.danger}88`,
+                borderRadius: 20, boxShadow: `0 0 12px ${DW.danger}44`,
+              }}>
+                <span style={{ fontSize: 16 }}>🔫</span>
+                <div>
+                  <div style={{ fontFamily: DW.display, fontSize: 11, fontWeight: 700,
+                                color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Heat</div>
+                  <div style={{ fontFamily: DW.mono, fontSize: 8, color: DW.danger, letterSpacing: '0.1em' }}>ONE USE · BURNS</div>
+                </div>
+              </div>
+            )}
+            {state.hasCopProtection && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '6px 12px',
+                background: `${DW.cyan}22`, border: `1px solid ${DW.cyan}88`,
+                borderRadius: 20, boxShadow: `0 0 12px ${DW.cyan}44`,
+              }}>
+                <span style={{ fontSize: 16 }}>🪪</span>
+                <div>
+                  <div style={{ fontFamily: DW.display, fontSize: 11, fontWeight: 700,
+                                color: '#fff', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Badge</div>
+                  <div style={{ fontFamily: DW.mono, fontSize: 8, color: DW.cyan, letterSpacing: '0.1em' }}>ONE USE · BURNS</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Stats row */}
         <div style={{
           display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
@@ -524,7 +582,7 @@ function InventoryScreen({ state, dispatch, onOpenTrade }) {
         }}>
           <div>
             <div style={iStatLabel}>Capacity</div>
-            <div style={iStatVal(DW.magenta)}>{load}/{DW_CONFIG.trenchCapacity}</div>
+            <div style={iStatVal(DW.magenta)}>{load}/{state.trenchCapacity}</div>
           </div>
           <div>
             <div style={iStatLabel}>Value here</div>
@@ -545,7 +603,7 @@ function InventoryScreen({ state, dispatch, onOpenTrade }) {
           border: '1px solid rgba(255,255,255,0.08)',
         }}>
           <div style={{
-            width: `${Math.min(100, load / DW_CONFIG.trenchCapacity * 100)}%`,
+            width: `${Math.min(100, load / state.trenchCapacity * 100)}%`,
             height: '100%',
             background: load > 80 ? `linear-gradient(90deg, ${DW.gold}, ${DW.danger})` :
                                     `linear-gradient(90deg, ${DW.cyan}, ${DW.magenta})`,
@@ -618,7 +676,7 @@ function InventoryScreen({ state, dispatch, onOpenTrade }) {
           background: 'rgba(255,48,100,0.06)',
           border: `1px solid ${DW.danger}55`, borderRadius: 3,
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <div>
               <div style={iStatLabel}>🦈 The Shark is Watching</div>
               <div style={{
@@ -640,6 +698,32 @@ function InventoryScreen({ state, dispatch, onOpenTrade }) {
                 DWAudio.cashRegister();
               }}
             >Pay All ({fmt(Math.min(state.cash, state.debt))})</NeonBtn>
+          </div>
+          {/* Borrow from shark */}
+          <div style={{
+            paddingTop: 10, borderTop: '1px solid rgba(255,48,100,0.2)',
+          }}>
+            <div style={{
+              fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
+              color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
+              marginBottom: 8,
+            }}>Need cash? Borrow (10% added to debt)</div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {[2000, 5000, 10000, 25000, 50000].map(amt => (
+                <button
+                  key={amt}
+                  onClick={() => { DWAudio.cashRegister(); dispatch({ type: 'BORROW_SHARK', amount: amt }); }}
+                  style={{
+                    flex: 1, minWidth: 50, padding: '7px 4px',
+                    background: 'rgba(255,48,100,0.08)',
+                    border: `1px solid ${DW.danger}55`,
+                    color: DW.danger, fontFamily: DW.display, fontWeight: 700,
+                    fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
+                    borderRadius: 2, cursor: 'pointer',
+                  }}
+                >{fmt(amt)}</button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -1183,7 +1267,7 @@ function EndOfDayScreen({ state, dispatch }) {
         }}>
           <RevealRow label="Cash on hand" value={fmtFull(state.cash)} color={DW.lime} shown={stage >= 1}/>
           <RevealRow label="Debt" value={fmtFull(state.debt)} color={DW.danger} shown={stage >= 1}/>
-          <RevealRow label="Load" value={`${getLoad(state.inventory)} / ${DW_CONFIG.trenchCapacity}`} color={DW.magenta} shown={stage >= 2}/>
+          <RevealRow label="Load" value={`${getLoad(state.inventory)} / ${state.trenchCapacity}`} color={DW.magenta} shown={stage >= 2}/>
           <RevealRow label="Heat" value={state.heat} color={DW.gold} shown={stage >= 2}/>
           <div style={{ gridColumn: '1 / span 2',
                         paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
@@ -1349,7 +1433,298 @@ function GameOverScreen({ state, dispatch }) {
   );
 }
 
+// ── Granny Big Bags ────────────────────────────────────────
+function GrannyScreen({ state, dispatch }) {
+  const price = grannyItemPrice(state.cash);
+  const backpackPrices = DW_CONFIG.grannyBackpackPrices;
+  const nextBackpack = backpackPrices[state.backpackTier];
+  const canAffordBackpack = nextBackpack != null && state.cash >= nextBackpack;
+  const canAffordGun = !state.hasGun && state.cash >= price;
+  const canAffordCop = !state.hasCopProtection && state.cash >= price;
+  const hasAnything = nextBackpack != null || !state.hasGun || !state.hasCopProtection;
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: DW.ink, overflow: 'hidden',
+      animation: 'dw-fadeup 400ms ease-out',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `radial-gradient(ellipse at 50% 0%, ${DW.gold}22, transparent 60%)`,
+      }}/>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `repeating-linear-gradient(45deg, ${DW.gold}06 0 24px, transparent 24px 48px)`,
+      }}/>
+
+      <StatusBar/>
+
+      <div style={{
+        position: 'absolute', top: 60, left: 0, right: 0, bottom: 0,
+        padding: '16px 20px', display: 'flex', flexDirection: 'column',
+        overflowY: 'auto',
+      }}>
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <div style={{ fontSize: 72, lineHeight: 1, marginBottom: 8,
+                        filter: `drop-shadow(0 0 20px ${DW.gold})` }}>👵</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 34, fontWeight: 800,
+            color: '#fff', textShadow: `0 0 18px ${DW.gold}`,
+            textTransform: 'uppercase', lineHeight: 0.95, marginBottom: 8,
+          }}>Granny<br/>Big Bags</div>
+          <div style={{
+            fontFamily: DW.body, fontSize: 13, color: 'rgba(255,255,255,0.7)',
+            fontStyle: 'italic', maxWidth: 260, margin: '0 auto', lineHeight: 1.4,
+          }}>
+            "Sweetie, Granny's got what you need. Cash only. No receipt."
+          </div>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 10, color: DW.gold,
+            letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 8,
+          }}>Cash on hand: {fmtFull(state.cash)}</div>
+        </div>
+
+        {/* Shop items */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+
+          {/* Backpack upgrade */}
+          {nextBackpack != null && (
+            <GrannyItem
+              emoji="🎒"
+              name={`Backpack Upgrade Tier ${state.backpackTier + 1}`}
+              desc={`+50 carry slots (${DW_CONFIG.baseCapacity + (state.backpackTier + 1) * 50} total)`}
+              price={nextBackpack}
+              color={DW.lime}
+              canAfford={canAffordBackpack}
+              onBuy={() => {
+                DWAudio.cashRegister();
+                dispatch({ type: 'BUY_GRANNY', item: 'backpack', price: nextBackpack });
+              }}
+            />
+          )}
+
+          {/* Gun */}
+          {!state.hasGun && (
+            <GrannyItem
+              emoji="🔫"
+              name="Heat"
+              desc="Scare off muggers — one use, then it's gone"
+              price={price}
+              color={DW.danger}
+              canAfford={canAffordGun}
+              onBuy={() => {
+                DWAudio.confirm();
+                dispatch({ type: 'BUY_GRANNY', item: 'gun', price });
+              }}
+            />
+          )}
+
+          {/* Cop protection */}
+          {!state.hasCopProtection && (
+            <GrannyItem
+              emoji="🪪"
+              name="Badge"
+              desc="Flash it at a cop stop — one use, disappears after"
+              price={price}
+              color={DW.cyan}
+              canAfford={canAffordCop}
+              onBuy={() => {
+                DWAudio.confirm();
+                dispatch({ type: 'BUY_GRANNY', item: 'copProtection', price });
+              }}
+            />
+          )}
+
+          {!hasAnything && (
+            <div style={{
+              padding: '30px 20px', textAlign: 'center',
+              fontFamily: DW.body, color: 'rgba(255,255,255,0.5)',
+              fontStyle: 'italic',
+            }}>
+              "You've bought everything, sweetie. Come back richer next time."
+            </div>
+          )}
+        </div>
+
+        <NeonBtn
+          color={DW.gold}
+          onClick={() => { DWAudio.tap(); dispatch({ type: 'GOTO', screen: 'endOfDay' }); }}
+          style={{ width: '100%', marginTop: 16 }}
+        >Leave Granny</NeonBtn>
+      </div>
+    </div>
+  );
+}
+
+function GrannyItem({ emoji, name, desc, price, color, canAfford, onBuy }) {
+  return (
+    <div style={{
+      padding: '14px 16px',
+      background: `${color}11`,
+      border: `1px solid ${color}66`,
+      borderRadius: 4,
+      boxShadow: `0 0 18px ${color}22`,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        <div style={{
+          fontSize: 36, lineHeight: 1,
+          filter: `drop-shadow(0 0 10px ${color})`,
+        }}>{emoji}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{
+            fontFamily: DW.display, fontWeight: 800, fontSize: 16,
+            color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em',
+          }}>{name}</div>
+          <div style={{
+            fontFamily: DW.body, fontSize: 12, color: 'rgba(255,255,255,0.65)',
+            marginTop: 2, lineHeight: 1.3,
+          }}>{desc}</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{
+            fontFamily: DW.display, fontWeight: 800, fontSize: 18,
+            color, textShadow: `0 0 10px ${color}`,
+          }}>{fmtFull(price)}</div>
+        </div>
+      </div>
+      <NeonBtn
+        color={color}
+        disabled={!canAfford}
+        onClick={onBuy}
+        style={{ width: '100%' }}
+        small
+      >
+        {canAfford ? `Buy for ${fmtFull(price)}` : `Need ${fmtFull(price - 0)} (short ${fmtFull(price)})`}
+      </NeonBtn>
+    </div>
+  );
+}
+
+// ── Stripped Screen ────────────────────────────────────────
+function StrippedScreen({ state, dispatch }) {
+  const reason = state.strippedReason || 'Everything gone.';
+
+  return (
+    <div style={{
+      position: 'absolute', inset: 0,
+      background: DW.ink, overflow: 'hidden',
+      animation: 'dw-fadeup 500ms ease-out',
+    }}>
+      {/* Red hazard stripes */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `repeating-linear-gradient(135deg, ${DW.danger}10 0 20px, transparent 20px 40px)`,
+      }}/>
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: `radial-gradient(ellipse at 50% 20%, ${DW.danger}33, transparent 60%)`,
+      }}/>
+
+      <StatusBar/>
+
+      <div style={{
+        position: 'absolute', top: 60, left: 0, right: 0, bottom: 0,
+        padding: '24px', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', overflowY: 'auto',
+      }}>
+        {/* Icon + headline */}
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{
+            fontSize: 80, lineHeight: 1, marginBottom: 10,
+            filter: `drop-shadow(0 0 24px ${DW.danger})`,
+            animation: 'dw-pulse 2s infinite',
+          }}>💀</div>
+          <div style={{
+            fontFamily: DW.mono, fontSize: 11, letterSpacing: '0.32em',
+            color: DW.danger, textTransform: 'uppercase', marginBottom: 10,
+            animation: 'dw-pulse 1.2s infinite',
+          }}>◉ CLEANED OUT · DAY {state.day}</div>
+          <div style={{
+            fontFamily: DW.display, fontSize: 46, fontWeight: 800, color: '#fff',
+            textShadow: `0 0 28px ${DW.danger}`, lineHeight: 0.9,
+            textTransform: 'uppercase', marginBottom: 14,
+          }}>Cleaned<br/>Out.</div>
+          <div style={{
+            fontFamily: DW.body, fontSize: 14, color: 'rgba(255,255,255,0.75)',
+            lineHeight: 1.5, maxWidth: 280,
+          }}>{reason}</div>
+        </div>
+
+        {/* Stat snapshot */}
+        <div style={{
+          width: '100%', padding: '14px 16px', marginBottom: 20,
+          background: 'rgba(255,255,255,0.04)',
+          border: `1px solid ${DW.danger}44`, borderRadius: 4,
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12,
+        }}>
+          <div>
+            <div style={iStatLabel}>Cash left</div>
+            <div style={iStatVal(DW.danger)}>{fmtFull(state.cash)}</div>
+          </div>
+          <div>
+            <div style={iStatLabel}>Debt</div>
+            <div style={iStatVal(DW.danger)}>{fmtFull(state.debt)}</div>
+          </div>
+          <div>
+            <div style={iStatLabel}>Health</div>
+            <div style={iStatVal(state.health > 40 ? DW.gold : DW.danger)}>{state.health}%</div>
+          </div>
+          <div>
+            <div style={iStatLabel}>Days left</div>
+            <div style={iStatVal(DW.magenta)}>{DW_CONFIG.totalDays - state.day}</div>
+          </div>
+        </div>
+
+        {/* Borrow from shark to get back on feet */}
+        <div style={{
+          width: '100%', padding: '14px 16px', marginBottom: 16,
+          background: `${DW.danger}0a`,
+          border: `1px solid ${DW.danger}55`, borderRadius: 4,
+        }}>
+          <div style={{
+            fontFamily: DW.display, fontSize: 14, fontWeight: 800,
+            color: DW.danger, textTransform: 'uppercase',
+            letterSpacing: '0.08em', marginBottom: 4,
+          }}>🦈 Borrow from the Shark</div>
+          <div style={{
+            fontFamily: DW.body, fontSize: 12, color: 'rgba(255,255,255,0.6)',
+            marginBottom: 10, lineHeight: 1.4,
+          }}>
+            He's already got your number. Might as well put it to use. +10% added to debt.
+          </div>
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {[2000, 5000, 10000, 25000, 50000].map(amt => (
+              <button
+                key={amt}
+                onClick={() => { DWAudio.cashRegister(); dispatch({ type: 'BORROW_SHARK', amount: amt }); }}
+                style={{
+                  flex: 1, minWidth: 50, padding: '8px 4px',
+                  background: `${DW.danger}22`,
+                  border: `1px solid ${DW.danger}66`,
+                  color: DW.danger, fontFamily: DW.display, fontWeight: 700,
+                  fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
+                  borderRadius: 2, cursor: 'pointer',
+                  boxShadow: `0 0 8px ${DW.danger}33`,
+                }}
+              >{fmt(amt)}</button>
+            ))}
+          </div>
+        </div>
+
+        <NeonBtn
+          color={DW.magenta}
+          onClick={() => { DWAudio.confirm(); dispatch({ type: 'GOTO', screen: 'market' }); }}
+          style={{ width: '100%' }}
+        >▸ Get Back Out There</NeonBtn>
+      </div>
+    </div>
+  );
+}
+
 Object.assign(window, {
   IntroScreen, MarketScreen, TradeSheet, InventoryScreen,
   TravelScreen, EventScreen, PhoneScreen, EndOfDayScreen, GameOverScreen,
+  GrannyScreen, StrippedScreen,
 });

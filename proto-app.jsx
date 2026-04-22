@@ -94,6 +94,10 @@ function ProtoApp() {
         return <PhoneScreen state={state} dispatch={dispatch}/>;
       case 'endOfDay':
         return <EndOfDayScreen state={state} dispatch={dispatch}/>;
+      case 'granny':
+        return <GrannyScreen state={state} dispatch={dispatch}/>;
+      case 'stripped':
+        return <StrippedScreen state={state} dispatch={dispatch}/>;
       case 'gameover':
         return <GameOverScreen state={state} dispatch={dispatch}/>;
       default:
@@ -103,7 +107,7 @@ function ProtoApp() {
 
   // Show bottom nav on gameplay screens
   const showNav = ['market', 'inventory', 'travel', 'phone'].includes(state.screen);
-  const showStatus = state.screen !== 'event' && state.screen !== 'intro' && state.screen !== 'gameover' && state.screen !== 'endOfDay';
+  const showStatus = !['event', 'intro', 'gameover', 'endOfDay', 'granny', 'stripped'].includes(state.screen);
 
   const phoneContent = (
     <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
