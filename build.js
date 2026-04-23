@@ -36,7 +36,20 @@ const html = `<!doctype html>
 </style>
 </head>
 <body>
-<div id="proto-root"></div>
+<div id="proto-root"><div id="proto-loading" style="position:fixed;inset:0;background:#0a0118;display:flex;align-items:center;justify-content:center;font-family:monospace;color:#ff2ea6;font-size:13px;letter-spacing:.1em;">LOADING…</div></div>
+
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  var el = document.getElementById('proto-root');
+  if (el) el.innerHTML = '<div style="position:fixed;inset:0;background:#0a0118;display:flex;align-items:center;justify-content:center;padding:24px"><div style="font-family:monospace;color:#ff3366;max-width:600px;background:rgba(255,51,102,0.1);border:1px solid #ff3366;border-radius:8px;padding:24px"><div style="font-size:18px;font-weight:700;margin-bottom:12px">💥 Script Error</div><pre style="font-size:12px;white-space:pre-wrap;color:#fff;opacity:0.85">' + msg + '\n\n' + src + ':' + line + ':' + col + (err && err.stack ? '\n\n' + err.stack : '') + '</pre></div></div>';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var el = document.getElementById('proto-root');
+  if (el && el.querySelector('#proto-loading')) {
+    el.innerHTML = '<div style="position:fixed;inset:0;background:#0a0118;display:flex;align-items:center;justify-content:center;padding:24px"><div style="font-family:monospace;color:#ff3366;max-width:600px;background:rgba(255,51,102,0.1);border:1px solid #ff3366;border-radius:8px;padding:24px"><div style="font-size:18px;font-weight:700;margin-bottom:12px">💥 Unhandled Promise</div><pre style="font-size:12px;white-space:pre-wrap;color:#fff;opacity:0.85">' + String(e.reason) + '</pre></div></div>';
+  }
+});
+</script>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
