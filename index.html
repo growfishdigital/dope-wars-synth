@@ -1956,16 +1956,18 @@ function MusicPlayer({ muted, onMuteToggle }) {
   React.useEffect(() => {
     setCoverArt(null);
     if (typeof jsmediatags === 'undefined') return;
-    jsmediatags.read(trackUrl(track.file), {
-      onSuccess: (tag) => {
-        const pic = tag.tags.picture;
-        if (!pic) return;
-        let str = '';
-        for (let i = 0; i < pic.data.length; i++) str += String.fromCharCode(pic.data[i]);
-        setCoverArt(`data:${pic.format};base64,${btoa(str)}`);
-      },
-      onError: () => {},
-    });
+    try {
+      jsmediatags.read(trackUrl(track.file), {
+        onSuccess: (tag) => {
+          const pic = tag.tags.picture;
+          if (!pic) return;
+          let str = '';
+          for (let i = 0; i < pic.data.length; i++) str += String.fromCharCode(pic.data[i]);
+          setCoverArt(`data:${pic.format};base64,${btoa(str)}`);
+        },
+        onError: () => {},
+      });
+    } catch (e) {}
   }, [trackIdx]);
 
   const togglePlay = () => {
