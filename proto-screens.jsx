@@ -30,7 +30,7 @@ function IntroScreen({ onStart }) {
           textShadow: `0 0 30px ${DW.magenta}, 0 0 60px ${DW.magenta}88, 0 4px 0 ${DW.violet}`,
           letterSpacing: '-0.02em', marginBottom: 14,
           textTransform: 'uppercase',
-        }}>Dope<br/>Wars</div>
+        }}>Dope Wars:<br/>Vice Edition</div>
         <div style={{
           fontFamily: DW.body, fontSize: 14, color: 'rgba(255,255,255,0.7)',
           marginBottom: 28, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto',
