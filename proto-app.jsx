@@ -1,11 +1,10 @@
 // ═══════════════════════════════════════════════════════════
-// proto-app.jsx — router, iPhone frame shell, Tweaks panel
+// proto-app.jsx — router, responsive shell, Tweaks panel
 // ═══════════════════════════════════════════════════════════
 
 const TWEAKS = /*EDITMODE-BEGIN*/{
   "marketLayout": "list",
   "mapVariant": "stylized",
-  "showInIphoneFrame": true,
   "muted": false
 }/*EDITMODE-END*/;
 
@@ -16,6 +15,15 @@ function ProtoApp() {
   const [tweaks, setTweaks] = React.useState(TWEAKS);
   const [editAvailable, setEditAvailable] = React.useState(false);
   const [toast, setToast] = React.useState(null);
+  const [vw, setVw] = React.useState(() => window.innerWidth);
+
+  React.useEffect(() => {
+    const fn = () => setVw(window.innerWidth);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+
+  const isDesktop = vw >= 1024;
 
   // Persist state
   React.useEffect(() => {
@@ -34,8 +42,6 @@ function ProtoApp() {
       localStorage.setItem('dw-proto-state', JSON.stringify(state));
     } catch (e) {}
   }, [state]);
-
-  // Ambient audio autoplay deferred until first interaction happens via buttons
 
   // Tweak-mode protocol
   React.useEffect(() => {
@@ -109,7 +115,7 @@ function ProtoApp() {
   const showNav = ['market', 'inventory', 'travel', 'phone'].includes(state.screen);
   const showStatus = !['event', 'intro', 'gameover', 'endOfDay', 'granny', 'stripped'].includes(state.screen);
 
-  const phoneContent = (
+  const gameContent = (
     <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
       <UIStyles/>
       {showStatus && <StatusBar/>}
@@ -118,7 +124,7 @@ function ProtoApp() {
       <TradeSheet state={state} tradeCtx={trade} dispatch={dispatch} onClose={closeTrade}/>
       <Toast msg={toast} onDone={() => setToast(null)}/>
 
-      {/* Reset floating button (always available for testing) */}
+      {/* Reset floating button */}
       {state.screen !== 'intro' && (
         <button
           onClick={() => {
@@ -156,23 +162,26 @@ function ProtoApp() {
     <div style={{
       position: 'fixed', inset: 0,
       background: `radial-gradient(ellipse at 30% 20%, #2a0d4e 0%, #0a0118 60%)`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: isDesktop ? 'flex' : 'block',
+      alignItems: isDesktop ? 'center' : undefined,
+      justifyContent: isDesktop ? 'center' : undefined,
       overflow: 'hidden',
     }}>
-      <PhoneFrame inFrame={tweaks.showInIphoneFrame}>{phoneContent}</PhoneFrame>
+      <ResponsiveShell vw={vw}>{gameContent}</ResponsiveShell>
 
       {tweaksOpen && (
         <TweaksPanel tweaks={tweaks} onChange={updateTweak} onClose={() => setTweaksOpen(false)}/>
       )}
 
-      {/* Side panel hint */}
-      <div style={{
-        position: 'fixed', top: 14, left: 14, zIndex: 200,
-        fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.4)',
-        letterSpacing: '0.16em', textTransform: 'uppercase',
-      }}>
-        DOPE WARS ⋅ PROTO v0.1
-      </div>
+      {isDesktop && (
+        <div style={{
+          position: 'fixed', top: 14, left: 14, zIndex: 200,
+          fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.4)',
+          letterSpacing: '0.16em', textTransform: 'uppercase',
+        }}>
+          DOPE WARS ⋅ PROTO v0.1
+        </div>
+      )}
     </div>
   );
 }
@@ -222,11 +231,6 @@ function TweaksPanel({ tweaks, onChange, onClose }) {
           { val: 'routes', label: 'Route map' },
         ]}
         onChange={v => onChange('mapVariant', v)}
-      />
-      <TweakToggle
-        label="iPhone frame"
-        value={tweaks.showInIphoneFrame}
-        onChange={v => onChange('showInIphoneFrame', v)}
       />
       <TweakToggle
         label="Audio"
@@ -295,66 +299,41 @@ function TweakToggle({ label, value, onChange }) {
 
 Object.assign(window, { ProtoApp });
 
-function PhoneFrame({ inFrame, children }) {
-  const ref = React.useRef(null);
-  const [scale, setScale] = React.useState(1);
-  React.useEffect(() => {
-    const fit = () => {
-      const w = window.innerWidth, h = window.innerHeight;
-      const pad = 40;
-      const fw = inFrame ? 420 : 402;
-      const fh = inFrame ? 892 : 874;
-      setScale(Math.min(1, Math.min((w - pad) / fw, (h - pad) / fh)));
-    };
-    fit();
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, [inFrame]);
-
-  if (inFrame) {
+// Responsive shell — no phone frame, adapts to viewport
+function ResponsiveShell({ vw, children }) {
+  // Mobile: full screen
+  if (vw < 640) {
     return (
-      <div ref={ref} style={{
-        width: 420, height: 892, borderRadius: 54,
-        background: '#000',
-        padding: 9,
-        boxShadow: '0 40px 120px rgba(0,0,0,0.7), 0 0 0 2px #222, 0 0 60px rgba(255,46,166,0.25)',
-        transform: `scale(${scale})`, transformOrigin: 'center center',
-        position: 'relative',
-      }}>
-        <div style={{
-          width: '100%', height: '100%', borderRadius: 46, overflow: 'hidden',
-          background: '#000', position: 'relative',
-        }}>
-          {children}
-          {/* dynamic island */}
-          <div style={{
-            position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
-            width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 70,
-            border: '1px solid rgba(255,255,255,0.05)',
-          }} />
-          {/* home indicator */}
-          <div style={{
-            position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)',
-            width: 139, height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.4)',
-            zIndex: 80, pointerEvents: 'none',
-          }}/>
-        </div>
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#000' }}>
+        {children}
       </div>
     );
   }
+  // Tablet: full screen
+  if (vw < 1024) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#000' }}>
+        {children}
+      </div>
+    );
+  }
+  // Desktop: centered card with background visible on sides
+  const cardW = Math.min(820, vw - 80);
+  const cardH = Math.min(window.innerHeight - 48, 960);
   return (
-    <div ref={ref} style={{
-      width: 402, height: 874, position: 'relative',
+    <div style={{
+      width: cardW, height: cardH,
+      position: 'relative', overflow: 'hidden',
+      background: '#000',
+      borderRadius: 16,
       border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: 20, overflow: 'hidden', background: '#000',
-      boxShadow: '0 30px 80px rgba(0,0,0,0.6), 0 0 40px rgba(255,46,166,0.2)',
-      transform: `scale(${scale})`, transformOrigin: 'center center',
+      boxShadow: `0 40px 120px rgba(0,0,0,0.8), 0 0 80px rgba(255,46,166,0.18), inset 0 1px 0 rgba(255,255,255,0.06)`,
     }}>
       {children}
     </div>
   );
 }
-Object.assign(window, { PhoneFrame });
+Object.assign(window, { ResponsiveShell });
 
 // Mount
 const root = ReactDOM.createRoot(document.getElementById('proto-root'));
