@@ -167,7 +167,7 @@ function ProtoApp() {
           fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.4)',
           letterSpacing: '0.16em', textTransform: 'uppercase',
         }}>
-          DOPE WARS: VICE EDITION
+          DOPE WARS: VICE
         </div>
       )}
     </div>
