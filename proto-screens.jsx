@@ -383,24 +383,36 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
       </div>
 
       {/* Mode toggle */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
-        {['buy', 'sell'].map(m => (
-          <button
-            key={m}
-            onClick={() => { DWAudio.tap(); setMode(m); setQty(1); }}
-            style={{
-              flex: 1, padding: '8px', border: '1px solid',
-              borderColor: mode === m ? (m === 'buy' ? DW.lime : DW.magenta) : 'rgba(255,255,255,0.12)',
-              background: mode === m ? (m === 'buy' ? DW.lime+'22' : DW.magenta+'22') : 'transparent',
-              color: '#fff', fontFamily: DW.display, fontWeight: 700, fontSize: 12,
-              textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 3,
-              cursor: 'pointer',
-              boxShadow: mode === m ? `0 0 14px ${m === 'buy' ? DW.lime : DW.magenta}55` : 'none',
-            }}
-          >
-            {m === 'buy' ? `Buy (${fmt(state.cash)} cash)` : `Sell (Holding ${held})`}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {['buy', 'sell'].map(m => {
+          const active = mode === m;
+          const c = m === 'buy' ? DW.lime : DW.danger;
+          return (
+            <button
+              key={m}
+              onClick={() => { DWAudio.tap(); setMode(m); setQty(1); }}
+              style={{
+                flex: 1, padding: '11px 8px', border: `2px solid ${active ? c : 'rgba(255,255,255,0.15)'}`,
+                background: active ? c : 'rgba(255,255,255,0.04)',
+                color: active ? '#0a0118' : 'rgba(255,255,255,0.55)',
+                fontFamily: DW.display, fontWeight: 800, fontSize: 14,
+                textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 4,
+                cursor: 'pointer', transition: 'all 150ms',
+                boxShadow: active ? `0 0 20px ${c}88` : 'none',
+              }}
+            >
+              {m === 'buy' ? '▲ Buy' : '▼ Sell'}
+            </button>
+          );
+        })}
+      </div>
+      {/* Mode context line */}
+      <div style={{
+        fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.45)',
+        letterSpacing: '0.12em', textTransform: 'uppercase',
+        marginTop: -10, marginBottom: 14,
+      }}>
+        {mode === 'buy' ? `Available: ${fmt(state.cash)} cash` : `Holding: ${held} units`}
       </div>
 
       {/* Qty */}
@@ -488,12 +500,13 @@ function TradeSheet({ state, dispatch, tradeCtx, onClose }) {
       </div>
 
       <NeonBtn
-        color={mode === 'buy' ? DW.lime : DW.magenta}
+        color={mode === 'buy' ? DW.lime : DW.danger}
         disabled={safeQty <= 0 || safeQty > max}
         onClick={exec}
-        style={{ width: '100%' }}
+        solid
+        style={{ width: '100%', fontSize: 16, padding: '16px 22px' }}
       >
-        {mode === 'buy' ? `Buy ${safeQty}× ${drug.name}` : `Sell ${safeQty}× ${drug.name}`}
+        {mode === 'buy' ? `▲ Buy ${safeQty}× ${drug.name}` : `▼ Sell ${safeQty}× ${drug.name}`}
       </NeonBtn>
     </Sheet>
   );
@@ -1024,7 +1037,9 @@ function TravelRoutes({ state, selected, onSelect }) {
             key={c.id + '-l'}
             style={{
               position: 'absolute',
-              left: `calc(${pos.x}% + 16px)`, top: `calc(${pos.y}% + 4px)`,
+              left: pos.x > 75 ? 'auto' : `calc(${pos.x}% + 16px)`,
+              right: pos.x > 75 ? `calc(${100 - pos.x}% + 16px)` : 'auto',
+              top: `calc(${pos.y}% + 4px)`,
               fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
               color: selected === c.id ? c.accent : 'rgba(255,255,255,0.75)',
               textTransform: 'uppercase', pointerEvents: 'none',

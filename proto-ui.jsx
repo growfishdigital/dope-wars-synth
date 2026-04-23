@@ -3,8 +3,9 @@
 // ═══════════════════════════════════════════════════════════
 
 // Neon CTA button
-function NeonBtn({ children, color = DW.magenta, onClick, disabled, style = {}, small, ghost }) {
+function NeonBtn({ children, color = DW.magenta, onClick, disabled, style = {}, small, ghost, solid }) {
   const [pressed, setPressed] = React.useState(false);
+  const filled = solid || pressed;
   return (
     <button
       onPointerDown={() => { setPressed(true); DWAudio.tap(); }}
@@ -14,13 +15,13 @@ function NeonBtn({ children, color = DW.magenta, onClick, disabled, style = {}, 
       disabled={disabled}
       style={{
         appearance: 'none', border: `1.5px solid ${color}`,
-        background: ghost ? 'transparent' : pressed ? color : `${color}22`,
-        color: ghost ? color : pressed ? '#14052a' : '#fff',
+        background: ghost ? 'transparent' : filled ? color : `${color}22`,
+        color: ghost ? color : filled ? '#0a0118' : '#fff',
         padding: small ? '8px 14px' : '14px 22px',
         fontFamily: DW.display, fontWeight: 800, letterSpacing: '0.08em',
         fontSize: small ? 12 : 14, textTransform: 'uppercase', cursor: 'pointer',
         borderRadius: 2, transition: 'all 120ms',
-        boxShadow: pressed ? `0 0 28px ${color}aa` : `0 0 12px ${color}66`,
+        boxShadow: filled ? `0 0 28px ${color}aa` : `0 0 12px ${color}66`,
         opacity: disabled ? 0.35 : 1,
         transform: pressed ? 'translateY(1px)' : 'none',
         ...style,
@@ -273,10 +274,11 @@ function Sheet({ open, onClose, children, title, color = DW.magenta }) {
       />
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0,
+        maxHeight: '88%', overflowY: 'auto',
         background: 'linear-gradient(180deg, #1b0a3e 0%, #0a0118 100%)',
         border: `1px solid ${color}44`, borderBottom: 'none',
         borderTopLeftRadius: 24, borderTopRightRadius: 24,
-        padding: '18px 20px 30px',
+        padding: '18px 20px 34px',
         transform: open ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 320ms cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: `0 -10px 40px ${color}55`,
