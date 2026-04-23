@@ -323,6 +323,37 @@ function ResponsiveShell({ vw, children }) {
 }
 Object.assign(window, { ResponsiveShell });
 
+// Error boundary — catches render errors and shows a debug message instead of blank screen
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{
+          position: 'fixed', inset: 0, background: '#0a0118',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }}>
+          <div style={{
+            fontFamily: 'monospace', color: '#ff3366', maxWidth: 600,
+            background: 'rgba(255,51,102,0.1)', border: '1px solid #ff3366',
+            borderRadius: 8, padding: 24,
+          }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
+              💥 Runtime Error
+            </div>
+            <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap', color: '#fff', opacity: 0.85 }}>
+              {String(this.state.error)}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Mount
 const root = ReactDOM.createRoot(document.getElementById('proto-root'));
-root.render(<ProtoApp/>);
+root.render(<ErrorBoundary><ProtoApp/></ErrorBoundary>);
