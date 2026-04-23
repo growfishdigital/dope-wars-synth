@@ -169,7 +169,7 @@ function HUDBar({ state }) {
         <StatChip label="Debt" value={fmt(state.debt)} color={DW.danger} />
       </div>
       <div style={{ display: 'flex', gap: 4 }}>
-        <StatChip label="Load" value={`${load}/${DW_CONFIG.trenchCapacity}`} color={load > 80 ? DW.danger : DW.magenta} />
+        <StatChip label="Load" value={`${load}/${state.trenchCapacity || DW_CONFIG.baseCapacity}`} color={load > 80 ? DW.danger : DW.magenta} />
         {state.heat > 0 && <StatChip label="Heat" value={state.heat} color={DW.gold} />}
       </div>
     </div>
@@ -375,6 +375,10 @@ function UIStyles() {
       @keyframes dw-fadeup {
         from { opacity: 0; transform: translateY(18px); }
         to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes dw-marquee {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
       }
       .dw-scanlines {
         position: relative;

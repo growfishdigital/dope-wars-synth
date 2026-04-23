@@ -1057,7 +1057,7 @@ function EventScreen({ state, dispatch }) {
         background: 'radial-gradient(circle at 50% 30%, rgba(255,48,100,0.25), transparent 60%)',
       }}/>
 
-      <StatusBar/>
+
 
       <div style={{
         position: 'absolute', top: 60, left: 0, right: 0, padding: '20px 24px',
@@ -1235,7 +1235,7 @@ function EndOfDayScreen({ state, dispatch }) {
         background: 'linear-gradient(180deg, rgba(10,1,24,0.45) 0%, rgba(10,1,24,0.95) 70%)',
       }}/>
 
-      <StatusBar/>
+
 
       <div style={{
         position: 'absolute', top: 60, left: 0, right: 0, bottom: 40,
@@ -1459,7 +1459,7 @@ function GrannyScreen({ state, dispatch }) {
         background: `repeating-linear-gradient(45deg, ${DW.gold}06 0 24px, transparent 24px 48px)`,
       }}/>
 
-      <StatusBar/>
+
 
       <div style={{
         position: 'absolute', top: 60, left: 0, right: 0, bottom: 0,
@@ -1623,7 +1623,7 @@ function StrippedScreen({ state, dispatch }) {
         background: `radial-gradient(ellipse at 50% 20%, ${DW.danger}33, transparent 60%)`,
       }}/>
 
-      <StatusBar/>
+
 
       <div style={{
         position: 'absolute', top: 60, left: 0, right: 0, bottom: 0,

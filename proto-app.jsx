@@ -118,7 +118,7 @@ function ProtoApp() {
   const gameContent = (
     <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
       <UIStyles/>
-      {showStatus && <StatusBar/>}
+      <MusicPlayer muted={tweaks.muted} onMuteToggle={() => updateTweak('muted', !tweaks.muted)}/>
       {screenContent}
       {showNav && <BottomNav screen={state.screen} onNavigate={navigate} messagesUnread={msgsUnread}/>}
       <TradeSheet state={state} tradeCtx={trade} dispatch={dispatch} onClose={closeTrade}/>
@@ -134,7 +134,7 @@ function ProtoApp() {
             }
           }}
           style={{
-            position: 'absolute', top: 20, left: 6, zIndex: 100,
+            position: 'absolute', top: 58, left: 6, zIndex: 100,
             background: 'rgba(10,1,24,0.6)', border: `1px solid ${DW.danger}55`,
             color: '#fff', width: 22, height: 22, borderRadius: '50%',
             fontSize: 11, cursor: 'pointer', padding: 0,
@@ -143,18 +143,6 @@ function ProtoApp() {
           title="Reset game"
         >⟲</button>
       )}
-
-      {/* Mute toggle */}
-      <button
-        onClick={() => updateTweak('muted', !tweaks.muted)}
-        style={{
-          position: 'absolute', top: 20, right: 6, zIndex: 100,
-          background: 'rgba(10,1,24,0.6)', border: `1px solid ${DW.cyan}55`,
-          color: '#fff', width: 22, height: 22, borderRadius: '50%',
-          fontSize: 11, cursor: 'pointer', padding: 0,
-        }}
-        title={tweaks.muted ? 'Unmute' : 'Mute'}
-      >{tweaks.muted ? '🔇' : '🔊'}</button>
     </div>
   );
 

@@ -9,6 +9,7 @@ const ORDER = [
   'proto-store.jsx',
   'proto-audio.jsx',
   'proto-ui.jsx',
+  'proto-music.jsx',
   'proto-screens.jsx',
   'proto-app.jsx',
 ];
@@ -40,6 +41,7 @@ const html = `<!doctype html>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.7/dist/jsmediatags.min.js"></script>
 
 <script type="text/babel">
 ${bundle}
