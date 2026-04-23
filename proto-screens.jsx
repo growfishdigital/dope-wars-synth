@@ -684,62 +684,18 @@ function InventoryScreen({ state, dispatch, onOpenTrade }) {
           })}
         </div>
 
-        {/* Debt/bank */}
-        <div style={{
-          marginTop: 20, padding: '12px 14px',
-          background: 'rgba(255,48,100,0.06)',
-          border: `1px solid ${DW.danger}55`, borderRadius: 3,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+        {/* Debt reminder */}
+        {state.debt > 0 && (
+          <div style={{ marginTop: 20, padding: '10px 14px', background: 'rgba(255,48,100,0.06)', border: `1px solid ${DW.danger}44`, borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={iStatLabel}>🦈 The Shark is Watching</div>
-              <div style={{
-                fontFamily: DW.display, fontSize: 22, fontWeight: 800, color: DW.danger,
-                textShadow: `0 0 12px ${DW.danger}`, marginTop: 4,
-              }}>{fmtFull(state.debt)}</div>
-              <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.5)',
-                            marginTop: 2, letterSpacing: '0.1em' }}>
-                +{Math.round(DW_CONFIG.debtInterest*100)}% PER DAY
-              </div>
+              <div style={iStatLabel}>🦈 Shark Debt</div>
+              <div style={{ fontFamily: DW.display, fontSize: 18, fontWeight: 800, color: DW.danger }}>{fmtFull(state.debt)}</div>
             </div>
-            <NeonBtn
-              color={DW.danger}
-              small
-              disabled={state.cash <= 0 || state.debt <= 0}
-              onClick={() => {
-                const amt = Math.min(state.cash, state.debt);
-                dispatch({ type: 'PAY_DEBT', amount: amt });
-                DWAudio.cashRegister();
-              }}
-            >Pay All ({fmt(Math.min(state.cash, state.debt))})</NeonBtn>
-          </div>
-          {/* Borrow from shark */}
-          <div style={{
-            paddingTop: 10, borderTop: '1px solid rgba(255,48,100,0.2)',
-          }}>
-            <div style={{
-              fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em',
-              color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
-              marginBottom: 8,
-            }}>Need cash? Borrow (10% added to debt)</div>
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              {[2000, 5000, 10000, 25000, 50000].map(amt => (
-                <button
-                  key={amt}
-                  onClick={() => { DWAudio.cashRegister(); dispatch({ type: 'BORROW_SHARK', amount: amt }); }}
-                  style={{
-                    flex: 1, minWidth: 50, padding: '7px 4px',
-                    background: 'rgba(255,48,100,0.08)',
-                    border: `1px solid ${DW.danger}55`,
-                    color: DW.danger, fontFamily: DW.display, fontWeight: 700,
-                    fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
-                    borderRadius: 2, cursor: 'pointer',
-                  }}
-                >{fmt(amt)}</button>
-              ))}
+            <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'right' }}>
+              See Phone<br/>→ The Shark
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1126,104 +1082,232 @@ function EventScreen({ state, dispatch }) {
 
 // ── Phone / Messages ───────────────────────────────────────
 function PhoneScreen({ state, dispatch }) {
+  const [activeApp, setActiveApp] = React.useState(null);
+  const msgsUnread = state.messages.filter(m => !m.read).length;
+  const home = () => setActiveApp(null);
+
+  if (activeApp === 'messages') return <MessagesApp state={state} dispatch={dispatch} onBack={home} />;
+  if (activeApp === 'bank')     return <BankApp state={state} dispatch={dispatch} onBack={home} />;
+  if (activeApp === 'shark')    return <LoanSharkApp state={state} dispatch={dispatch} onBack={home} />;
+
+  const apps = [
+    { id: 'messages', icon: '💬', name: 'Messages',      color: DW.cyan,   sub: `${state.messages.length} message${state.messages.length !== 1 ? 's' : ''}`, badge: msgsUnread },
+    { id: 'bank',     icon: '🏦', name: 'First National', color: DW.lime,   sub: `Balance: ${fmt(state.bank)}` },
+    { id: 'shark',    icon: '🦈', name: 'The Shark',      color: DW.danger, sub: `Debt: ${fmt(state.debt)}` },
+  ];
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.ink }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}><CityScene id={state.city} /></div>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,1,24,0.75), rgba(10,1,24,0.98))' }}/>
+      <HUDBar state={state} />
+      <div style={{ position: 'absolute', top: 112, left: 0, right: 0, bottom: 100, padding: '0 16px', overflow: 'auto' }}>
+        <div style={{ padding: '4px 0 20px' }}>
+          <div style={{ fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em', color: DW.sunset, textTransform: 'uppercase' }}>BURNPHONE PRO</div>
+          <div style={{ fontFamily: DW.display, fontSize: 28, fontWeight: 800, color: '#fff', textShadow: `0 0 14px ${DW.sunset}`, lineHeight: 1, textTransform: 'uppercase' }}>Apps</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {apps.map(app => (
+            <button key={app.id} onClick={() => { DWAudio.tap(); setActiveApp(app.id); }} style={{
+              display: 'flex', alignItems: 'center', gap: 14, width: '100%',
+              padding: '14px 16px', cursor: 'pointer',
+              background: `${app.color}0d`, border: `1px solid ${app.color}44`,
+              borderRadius: 8, textAlign: 'left',
+            }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+                background: `${app.color}22`, border: `1.5px solid ${app.color}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 26, position: 'relative', boxShadow: `0 0 14px ${app.color}55`,
+              }}>
+                {app.icon}
+                {app.badge > 0 && (
+                  <div style={{
+                    position: 'absolute', top: -5, right: -5,
+                    background: DW.danger, color: '#fff', borderRadius: '50%',
+                    width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, fontFamily: DW.mono, fontWeight: 700,
+                  }}>{app.badge}</div>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: DW.display, fontWeight: 800, fontSize: 16, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{app.name}</div>
+                <div style={{ fontFamily: DW.mono, fontSize: 10, color: app.color, letterSpacing: '0.1em', marginTop: 3, textTransform: 'uppercase' }}>{app.sub}</div>
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 20, fontFamily: DW.display }}>›</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneAppShell({ state, onBack, accentColor, label, title, children }) {
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: DW.ink }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: 0.12 }}><CityScene id={state.city} /></div>
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,1,24,0.75), rgba(10,1,24,0.98))' }}/>
+      <HUDBar state={state} />
+      <div style={{ position: 'absolute', top: 112, left: 0, right: 0, bottom: 100, padding: '0 16px', overflow: 'auto' }}>
+        <div style={{ padding: '4px 0 18px', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <button onClick={onBack} style={{
+            background: 'none', border: 'none', color: accentColor,
+            fontSize: 24, cursor: 'pointer', padding: '2px 4px 0 0', lineHeight: 1, flexShrink: 0,
+          }}>‹</button>
+          <div>
+            <div style={{ fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em', color: accentColor, textTransform: 'uppercase' }}>{label}</div>
+            <div style={{ fontFamily: DW.display, fontSize: 26, fontWeight: 800, color: '#fff', textShadow: `0 0 14px ${accentColor}`, lineHeight: 1, textTransform: 'uppercase' }}>{title}</div>
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MessagesApp({ state, dispatch, onBack }) {
   React.useEffect(() => {
-    // Mark all read when they open the phone
     const unread = state.messages.some(m => !m.read);
     if (unread) {
       const t = setTimeout(() => dispatch({ type: 'MARK_READ' }), 600);
       return () => clearTimeout(t);
     }
   }, []);
-
-  // Group messages by contact
-  const byContact = {};
-  state.messages.forEach(m => {
-    if (!byContact[m.from]) byContact[m.from] = [];
-    byContact[m.from].push(m);
-  });
-
   return (
-    <div style={{ position: 'absolute', inset: 0, background: DW.ink }}>
-      <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}>
-        <CityScene id={state.city} />
-      </div>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, rgba(10,1,24,0.75), rgba(10,1,24,0.98))',
-      }}/>
-
-      <HUDBar state={state} />
-
-      <div style={{
-        position: 'absolute', top: 112, left: 0, right: 0, bottom: 100,
-        padding: '0 16px', overflow: 'auto',
-      }}>
-        <div style={{ padding: '4px 0 14px' }}>
-          <div style={{
-            fontFamily: DW.mono, fontSize: 10, letterSpacing: '0.24em',
-            color: DW.sunset, textTransform: 'uppercase',
-          }}>INBOX · {state.messages.length} MSGS</div>
-          <div style={{
-            fontFamily: DW.display, fontSize: 28, fontWeight: 800, color: '#fff',
-            textShadow: `0 0 14px ${DW.sunset}`, lineHeight: 1,
-            textTransform: 'uppercase',
-          }}>Messages</div>
+    <PhoneAppShell state={state} onBack={onBack} accentColor={DW.sunset} label={`INBOX · ${state.messages.length} MSGS`} title="Messages">
+      {state.messages.length === 0 && (
+        <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: DW.body, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
+          Nobody's pinged you yet.<br/>
+          <span style={{ fontSize: 11, marginTop: 6, display: 'block' }}>Travel to trigger contacts.</span>
         </div>
-
-        {state.messages.length === 0 && (
-          <div style={{
-            padding: '40px 20px', textAlign: 'center',
-            fontFamily: DW.body, color: 'rgba(255,255,255,0.4)',
-            fontStyle: 'italic',
-          }}>
-            Nobody's pinged you yet.<br/>
-            <span style={{ fontSize: 11, marginTop: 6, display: 'block' }}>
-              Travel to trigger contacts.
-            </span>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {state.messages.map((m, i) => {
-            const c = CONTACTS[m.from] || { name: m.from, emoji: '👤', color: '#fff' };
-            return (
-              <div key={i} style={{
-                padding: '10px 12px',
-                background: 'rgba(255,255,255,0.03)',
-                border: `1px solid ${c.color}33`,
-                borderRadius: 3,
-                display: 'flex', gap: 10, alignItems: 'flex-start',
-                animation: !m.read ? 'dw-fadeup 400ms ease-out' : 'none',
-              }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  background: `${c.color}22`, border: `1.5px solid ${c.color}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 18, flexShrink: 0,
-                  boxShadow: `0 0 10px ${c.color}66`,
-                }}>{c.emoji}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{
-                      fontFamily: DW.display, fontWeight: 700, fontSize: 13, color: '#fff',
-                      textTransform: 'uppercase', letterSpacing: '0.04em',
-                    }}>{c.name}</div>
-                    <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.4)',
-                                  letterSpacing: '0.1em' }}>D{m.day}</div>
-                  </div>
-                  <div style={{
-                    fontFamily: DW.body, fontSize: 13, color: 'rgba(255,255,255,0.85)',
-                    lineHeight: 1.4, marginTop: 3,
-                  }}>{m.text}</div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {state.messages.map((m, i) => {
+          const c = CONTACTS[m.from] || { name: m.from, emoji: '👤', color: '#fff' };
+          return (
+            <div key={i} style={{
+              padding: '10px 12px', background: 'rgba(255,255,255,0.03)',
+              border: `1px solid ${c.color}33`, borderRadius: 3,
+              display: 'flex', gap: 10, alignItems: 'flex-start',
+              animation: !m.read ? 'dw-fadeup 400ms ease-out' : 'none',
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                background: `${c.color}22`, border: `1.5px solid ${c.color}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 18, boxShadow: `0 0 10px ${c.color}66`,
+              }}>{c.emoji}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ fontFamily: DW.display, fontWeight: 700, fontSize: 13, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{c.name}</div>
+                  <div style={{ fontFamily: DW.mono, fontSize: 9, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>D{m.day}</div>
                 </div>
+                <div style={{ fontFamily: DW.body, fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 1.4, marginTop: 3 }}>{m.text}</div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </PhoneAppShell>
   );
 }
+
+function BankApp({ state, dispatch, onBack }) {
+  const quickBtn = (label, onClick) => (
+    <button onClick={onClick} style={{
+      flex: 1, padding: '9px 4px',
+      background: `${DW.lime}12`, border: `1px solid ${DW.lime}44`,
+      color: DW.lime, fontFamily: DW.display, fontWeight: 700,
+      fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
+      borderRadius: 3, cursor: 'pointer',
+    }}>{label}</button>
+  );
+  const deposit = (amt) => { DWAudio.cashRegister(); dispatch({ type: 'DEPOSIT', amount: amt }); };
+  const withdraw = (amt) => { DWAudio.cashRegister(); dispatch({ type: 'WITHDRAW', amount: amt }); };
+
+  return (
+    <PhoneAppShell state={state} onBack={onBack} accentColor={DW.lime} label="FIRST NATIONAL BANK" title="Banking">
+      {/* Balance */}
+      <div style={{ padding: '16px', background: `${DW.lime}0d`, border: `1px solid ${DW.lime}44`, borderRadius: 8, marginBottom: 16 }}>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 4 }}>Vault Balance</div>
+        <div style={{ fontFamily: DW.display, fontWeight: 800, fontSize: 36, color: DW.lime, textShadow: `0 0 20px ${DW.lime}`, lineHeight: 1 }}>{fmtFull(state.bank)}</div>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, color: DW.lime, opacity: 0.7, marginTop: 6, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          🛡 Protected from arrest &amp; mugging · +{Math.round(DW_CONFIG.bankInterest * 100)}% interest/day
+        </div>
+      </div>
+
+      {/* Cash on hand */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, padding: '0 2px' }}>
+        <div style={{ fontFamily: DW.mono, fontSize: 10, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Cash on hand</div>
+        <div style={{ fontFamily: DW.display, fontWeight: 800, fontSize: 18, color: '#fff' }}>{fmtFull(state.cash)}</div>
+      </div>
+
+      {/* Deposit */}
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 8 }}>Deposit cash → vault</div>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {[1000, 5000, 10000, 25000].map(a => quickBtn(fmt(a), () => deposit(a)))}
+          {quickBtn('All', () => deposit(state.cash))}
+        </div>
+      </div>
+
+      {/* Withdraw */}
+      <div>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 8 }}>Withdraw vault → cash</div>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {[1000, 5000, 10000, 25000].map(a => quickBtn(fmt(a), () => withdraw(a)))}
+          {quickBtn('All', () => withdraw(state.bank))}
+        </div>
+      </div>
+    </PhoneAppShell>
+  );
+}
+
+function LoanSharkApp({ state, dispatch, onBack }) {
+  return (
+    <PhoneAppShell state={state} onBack={onBack} accentColor={DW.danger} label="PRIVATE LENDING" title="The Shark">
+      {/* Debt display */}
+      <div style={{ padding: '16px', background: 'rgba(255,48,100,0.07)', border: `1px solid ${DW.danger}55`, borderRadius: 8, marginBottom: 16 }}>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 4 }}>Outstanding Debt</div>
+        <div style={{ fontFamily: DW.display, fontWeight: 800, fontSize: 36, color: DW.danger, textShadow: `0 0 20px ${DW.danger}`, lineHeight: 1 }}>{fmtFull(state.debt)}</div>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, color: DW.danger, opacity: 0.75, marginTop: 6, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          +{Math.round(DW_CONFIG.debtInterest * 100)}% interest compounded daily
+        </div>
+      </div>
+
+      {/* Pay */}
+      <div style={{ marginBottom: 20 }}>
+        <NeonBtn
+          color={DW.danger} solid
+          disabled={state.cash <= 0 || state.debt <= 0}
+          onClick={() => { const amt = Math.min(state.cash, state.debt); dispatch({ type: 'PAY_DEBT', amount: amt }); DWAudio.cashRegister(); }}
+          style={{ width: '100%' }}
+        >Pay All — {fmt(Math.min(state.cash, state.debt))}</NeonBtn>
+      </div>
+
+      {/* Borrow */}
+      <div style={{ borderTop: `1px solid ${DW.danger}33`, paddingTop: 16 }}>
+        <div style={{ fontFamily: DW.mono, fontSize: 9, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: 10 }}>
+          Borrow cash — 10% added to debt
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          {[2000, 5000, 10000, 25000, 50000].map(amt => (
+            <button key={amt} onClick={() => { DWAudio.cashRegister(); dispatch({ type: 'BORROW_SHARK', amount: amt }); }}
+              style={{
+                flex: 1, minWidth: 52, padding: '9px 4px',
+                background: 'rgba(255,48,100,0.08)', border: `1px solid ${DW.danger}55`,
+                color: DW.danger, fontFamily: DW.display, fontWeight: 700,
+                fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
+                borderRadius: 3, cursor: 'pointer',
+              }}>{fmt(amt)}</button>
+          ))}
+        </div>
+      </div>
+    </PhoneAppShell>
+  );
+}
+
 
 // ── End of Day Summary ─────────────────────────────────────
 function EndOfDayScreen({ state, dispatch }) {
