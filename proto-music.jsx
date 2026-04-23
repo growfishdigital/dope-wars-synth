@@ -15,13 +15,26 @@ function trackUrl(file) {
   return file.replace(/ /g, '%20');
 }
 
-function MusicPlayer({ muted, onMuteToggle }) {
+function MusicPlayer({ muted, onMuteToggle, gameStarted }) {
   const [trackIdx, setTrackIdx] = React.useState(0);
   const [playing, setPlaying] = React.useState(false);
   const [coverArt, setCoverArt] = React.useState(null);
   const audioRef = React.useRef(null);
+  const autoStartedRef = React.useRef(false);
 
   const track = TRACKS[trackIdx];
+
+  // Auto-play when game starts (runs within the user gesture context)
+  React.useEffect(() => {
+    if (!gameStarted || autoStartedRef.current) return;
+    autoStartedRef.current = true;
+    const audio = audioRef.current;
+    if (!audio) return;
+    DWAudio.stopAmbient();
+    audio.src = trackUrl(track.file);
+    audio.muted = muted;
+    audio.play().then(() => setPlaying(true)).catch(() => {});
+  }, [gameStarted]);
 
   // Auto-advance on track end
   React.useEffect(() => {

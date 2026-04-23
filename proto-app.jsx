@@ -118,7 +118,7 @@ function ProtoApp() {
   const gameContent = (
     <div style={{ position: 'absolute', inset: 0, background: '#000', overflow: 'hidden' }}>
       <UIStyles/>
-      <MusicPlayer muted={tweaks.muted} onMuteToggle={() => updateTweak('muted', !tweaks.muted)}/>
+      <MusicPlayer muted={tweaks.muted} onMuteToggle={() => updateTweak('muted', !tweaks.muted)} gameStarted={state.screen !== 'intro'}/>
       {screenContent}
       {showNav && <BottomNav screen={state.screen} onNavigate={navigate} messagesUnread={msgsUnread}/>}
       <TradeSheet state={state} tradeCtx={trade} dispatch={dispatch} onClose={closeTrade}/>
