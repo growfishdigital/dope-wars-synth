@@ -38,7 +38,7 @@ function IntroScreen({ onStart }) {
         }}>
           30 days. 6 cities. A trenchcoat full of contraband and a loanshark who knows your name.
         </div>
-        <NeonBtn color={DW.lime} onClick={() => { DWAudio.confirm(); DWAudio.startAmbient(); onStart(); }}>
+        <NeonBtn color={DW.lime} onClick={() => { DWAudio.confirm(); onStart(); }}>
           ▸ Start Running
         </NeonBtn>
       </div>
@@ -1426,7 +1426,6 @@ function GameOverScreen({ state, dispatch }) {
       }}>
         <NeonBtn color={DW.lime} onClick={() => {
           DWAudio.confirm();
-          DWAudio.startAmbient();
           dispatch({ type: 'START_GAME' });
         }} style={{ width: '100%' }}>▸ Run it Back</NeonBtn>
       </div>

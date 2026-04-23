@@ -71,6 +71,7 @@ function MusicPlayer({ muted, onMuteToggle }) {
       audio.pause();
       setPlaying(false);
     } else {
+      DWAudio.stopAmbient();
       audio.play().then(() => setPlaying(true)).catch(() => {});
     }
   };
