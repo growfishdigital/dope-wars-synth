@@ -1269,3 +1269,122 @@
     box-shadow: inset 0 0 0 2px var(--alarm) !important;
   }
 }
+
+/* ================================================================
+   Mechanic briefing modal
+   ================================================================ */
+
+.dc-brief-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5);
+  background: oklch(0.05 0.02 240 / 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: dc-brief-fade 220ms var(--ease-out-quart);
+}
+@keyframes dc-brief-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dc-brief:focus {
+  outline: none;
+}
+.dc-brief {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: var(--sp-6) var(--sp-5) var(--sp-5);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--abyss-2), var(--abyss-1));
+  border: 1px solid var(--phosphor-dim);
+  box-shadow:
+    0 0 0 1px oklch(0.1 0.02 232),
+    0 24px 60px -16px oklch(0 0 0 / 0.8),
+    inset 0 0 28px oklch(0.6 0.12 185 / 0.08);
+  text-align: center;
+  animation: dc-brief-pop 260ms var(--ease-out-quint);
+}
+@keyframes dc-brief-pop {
+  from {
+    transform: scale(0.92) translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.dc-brief-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-md);
+  color: var(--ink-dim);
+  font-size: 1.1rem;
+  transition: background var(--dur-state) var(--ease-out-quart), color var(--dur-state);
+}
+.dc-brief-x:hover,
+.dc-brief-x:active {
+  background: var(--abyss-3);
+  color: var(--ink);
+}
+
+.dc-brief-kicker {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--phosphor-dim);
+}
+.dc-brief-glyph {
+  margin: var(--sp-4) auto var(--sp-3);
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--phosphor);
+  border-radius: 50%;
+  border: 1px solid var(--phosphor-dim);
+  background: radial-gradient(circle at 50% 45%, oklch(0.3 0.09 180 / 0.6), transparent 72%);
+  text-shadow: 0 0 16px var(--phosphor-glow);
+  animation: dc-breathe 2s ease-in-out infinite;
+}
+.dc-brief-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.dc-brief-lines {
+  margin-top: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.dc-brief-lines p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  text-wrap: pretty;
+}
+.dc-brief-go {
+  margin-top: var(--sp-5);
+}

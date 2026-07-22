@@ -14,6 +14,7 @@ export function loadMeta(): Meta {
       ...base,
       ...parsed,
       unlocks: { ...base.unlocks, ...(parsed.unlocks ?? {}) },
+      seenBriefings: { ...base.seenBriefings, ...(parsed.seenBriefings ?? {}) },
       daily: {
         lastDate: parsed.daily?.lastDate ?? null,
         bestDepthByDate: parsed.daily?.bestDepthByDate ?? {},

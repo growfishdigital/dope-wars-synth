@@ -20,4 +20,5 @@ export type Action =
   | { type: 'BUY'; item: ItemId }
   | { type: 'NEXT_FLOOR' }
   | { type: 'DISMISS_TOAST'; id: number }
+  | { type: 'DISMISS_BRIEFING' }
   | { type: 'SET_MUTED'; muted: boolean };

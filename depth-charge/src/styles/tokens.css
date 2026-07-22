@@ -88,6 +88,7 @@
   --z-sheet-backdrop: 30;
   --z-sheet: 40;
   --z-toast: 50;
+  --z-modal: 60;
 
   /* ---- Depth-reactive surface (updated per floor by the app) ---- */
   --depth-tint: 232;

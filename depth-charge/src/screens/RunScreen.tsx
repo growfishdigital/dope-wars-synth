@@ -5,6 +5,7 @@ import { Board } from '../components/Board';
 import { Hud } from '../components/Hud';
 import { ItemBar } from '../components/ItemBar';
 import { Toast } from '../components/Toast';
+import { Briefing } from '../components/Briefing';
 import { DRIFT_UNKNOWN_DEPTH } from '../engine/config';
 
 export function RunScreen({
@@ -56,6 +57,7 @@ export function RunScreen({
       {run.toast && (
         <Toast toast={run.toast} onDismiss={(id) => dispatch({ type: 'DISMISS_TOAST', id })} />
       )}
+      {run.briefing && <Briefing id={run.briefing} dispatch={dispatch} />}
     </div>
   );
 }

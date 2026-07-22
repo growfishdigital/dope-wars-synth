@@ -1,4 +1,4 @@
-import type { FloorConfig, ItemDef, ItemId, Meta } from './types';
+import type { BriefingId, FloorConfig, ItemDef, ItemId, Meta } from './types';
 
 export const START_HP = 3;
 export const MAX_HP_CAP = 6;
@@ -131,6 +131,56 @@ export function price(item: ItemDef, priorPurchases: number): number {
   return Math.round(item.basePrice * Math.pow(item.priceScale, priorPurchases));
 }
 
+export interface Briefing {
+  id: BriefingId;
+  depth: number;
+  glyph: string;
+  title: string;
+  lines: string[];
+}
+
+/** New-mechanic briefings, shown once each when the player first reaches the depth. */
+export const BRIEFINGS: Briefing[] = [
+  {
+    id: 'volatile',
+    depth: 4,
+    glyph: '✳',
+    title: 'Volatile Charges',
+    lines: [
+      'The trench is deep enough now for volatile charges.',
+      'Detonate one and it costs 2 hull instead of 1 — mind your integrity.',
+    ],
+  },
+  {
+    id: 'drift',
+    depth: 6,
+    glyph: '◇',
+    title: 'Drifting Contacts',
+    lines: [
+      'Some charges now drift, relocating between your digs.',
+      "When one moves you'll hear it and the affected readings pulse — re-check them before you trust them.",
+    ],
+  },
+  {
+    id: 'unknown',
+    depth: 8,
+    glyph: '?',
+    title: 'Sonar Interference',
+    lines: [
+      'This deep, the pressure scrambles your sonar.',
+      'When a charge drifts, the readings it disturbs go dark as “?” until your next dig re-locks them.',
+    ],
+  },
+];
+
+export function briefingForDepth(depth: number): Briefing | undefined {
+  return BRIEFINGS.find((b) => b.depth === depth);
+}
+
+export function briefingById(id: BriefingId): Briefing | undefined {
+  return BRIEFINGS.find((b) => b.id === id);
+}
+
 export function initialMeta(): Meta {
   return {
     bestDepth: 0,
@@ -140,6 +190,7 @@ export function initialMeta(): Meta {
     totalHits: 0,
     fullClears: 0,
     unlocks: { defuser: false, transponder: false, ballast: false },
+    seenBriefings: {},
     daily: { lastDate: null, bestDepthByDate: {} },
   };
 }

@@ -7,7 +7,9 @@ import {
   ITEMS,
   START_HP,
   MAX_HP_CAP,
+  briefingForDepth,
 } from '../engine/config';
+import type { BriefingId } from '../engine/types';
 import { makeBoard, armBoard, cloneBoard } from '../engine/board';
 import {
   revealCell,
@@ -32,6 +34,12 @@ let sfxSeq = 1;
 
 function sfx(run: RunState, kind: SfxKind, extra: { n?: number; streak?: number } = {}): void {
   run.sfx = { id: sfxSeq++, kind, ...extra };
+}
+
+/** The unseen briefing for a depth, if this floor introduces a new mechanic. */
+function briefingFor(meta: Meta, depth: number): BriefingId | null {
+  const b = briefingForDepth(depth);
+  return b && !meta.seenBriefings[b.id] ? b.id : null;
 }
 
 function freshInventory(): Record<ItemId, number> {
@@ -60,6 +68,7 @@ function makeRun(mode: RunMode, seed: string, startDepth = 1): RunState {
     ballastCharged: false,
     armedItem: null,
     flagMode: false,
+    briefing: null,
     exitFound: false,
     purchases: freshPurchases(),
     board: makeBoard(cfg, seed),
@@ -200,7 +209,9 @@ function endRun(state: AppState, run: RunState, cause: string): AppState {
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'START_RUN': {
-      return { ...state, run: makeRun(action.mode, action.seed, action.startDepth) };
+      const run = makeRun(action.mode, action.seed, action.startDepth);
+      run.briefing = briefingFor(state.meta, run.depth);
+      return { ...state, run };
     }
 
     case 'GO_TITLE': {
@@ -393,11 +404,22 @@ export function reducer(state: AppState, action: Action): AppState {
           exitFound: false,
           armedItem: null,
           flagMode: false,
+          briefing: briefingFor(state.meta, depth),
           toast: null,
           jolt: 0,
           alarm: 0,
         },
       };
+    }
+
+    case 'DISMISS_BRIEFING': {
+      const run = state.run;
+      if (!run.briefing) return state;
+      const meta: Meta = {
+        ...state.meta,
+        seenBriefings: { ...state.meta.seenBriefings, [run.briefing]: true },
+      };
+      return { ...state, meta, run: { ...run, briefing: null } };
     }
 
     case 'SET_MUTED': {

@@ -96,6 +96,7 @@ export interface FloorConfig {
 
 export type Screen = 'title' | 'run' | 'shop' | 'gameover';
 export type RunMode = 'free' | 'daily';
+export type BriefingId = 'volatile' | 'drift' | 'unknown';
 
 export interface Meta {
   bestDepth: number;
@@ -105,6 +106,8 @@ export interface Meta {
   totalHits: number;
   fullClears: number;
   unlocks: Record<UnlockId, boolean>;
+  /** Which mechanic briefings the player has already seen (shown once each). */
+  seenBriefings: Record<string, boolean>;
   daily: {
     lastDate: string | null;
     bestDepthByDate: Record<string, number>;
@@ -129,6 +132,8 @@ export interface RunState {
   /** A targeted item awaiting a board tap, or null. */
   armedItem: ItemId | null;
   flagMode: boolean;
+  /** A mechanic briefing to show over the board, or null. */
+  briefing: BriefingId | null;
   exitFound: boolean;
   /** Purchases per item this run, for price scaling. */
   purchases: Record<ItemId, number>;
