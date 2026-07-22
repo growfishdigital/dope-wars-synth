@@ -1,0 +1,95 @@
+/*
+ * Depth Charge — design tokens
+ * Aesthetic: a submarine sonar console in the abyssal dark.
+ * Strategy: "drenched" — the surface IS the deep. One vivid cold accent
+ * (sonar phosphor), one warm alarm accent (anglerfish amber/coral), brass salvage.
+ * Colours are OKLCH. Depth-reactive surface variables are updated at runtime.
+ */
+
+:root {
+  /* ---- Abyss surface ramp (cold, near-black blue) ---- */
+  --abyss-0: oklch(0.13 0.028 232);   /* deepest — page void */
+  --abyss-1: oklch(0.17 0.03 231);    /* console body */
+  --abyss-2: oklch(0.22 0.032 230);   /* raised panel */
+  --abyss-3: oklch(0.28 0.035 229);   /* hidden sonar contact (tile) */
+  --abyss-4: oklch(0.34 0.037 228);   /* tile hover / edge light */
+
+  /* ---- Ink ---- */
+  --ink: oklch(0.95 0.012 220);       /* primary text */
+  --ink-dim: oklch(0.74 0.02 222);    /* secondary text */
+  --ink-faint: oklch(0.56 0.022 224); /* tertiary / disabled */
+
+  /* ---- Sonar phosphor (the single cold accent) ---- */
+  --phosphor: oklch(0.84 0.15 172);       /* bright readout green-aqua */
+  --phosphor-strong: oklch(0.9 0.16 168);
+  --phosphor-dim: oklch(0.6 0.09 174);
+  --phosphor-glow: oklch(0.84 0.15 172 / 0.45);
+
+  /* ---- Warm alarm (danger / charges) ---- */
+  --alarm: oklch(0.7 0.19 40);        /* anglerfish amber-coral */
+  --alarm-strong: oklch(0.66 0.21 33);
+  --alarm-glow: oklch(0.7 0.19 40 / 0.5);
+
+  /* ---- Salvage (brass) ---- */
+  --salvage: oklch(0.82 0.13 84);
+  --salvage-dim: oklch(0.64 0.1 82);
+
+  /* ---- Hull integrity ---- */
+  --hull-ok: var(--phosphor);
+  --hull-low: oklch(0.78 0.17 62);    /* amber warning */
+  --hull-crit: var(--alarm);
+
+  /* ---- Proximity readout ramp (numbers 1..8) ----
+     Cold-to-hot: distant charges read cool, dense clusters read hot. */
+  --n1: oklch(0.82 0.11 200);
+  --n2: oklch(0.84 0.14 165);
+  --n3: oklch(0.86 0.15 128);
+  --n4: oklch(0.86 0.14 96);
+  --n5: oklch(0.82 0.16 66);
+  --n6: oklch(0.76 0.19 42);
+  --n7: oklch(0.72 0.21 26);
+  --n8: oklch(0.7 0.23 12);
+
+  /* ---- Lines & structure ---- */
+  --line: oklch(0.4 0.03 228 / 0.55);
+  --line-strong: oklch(0.5 0.04 200 / 0.7);
+  --grid-line: oklch(0.45 0.05 190 / 0.22);
+
+  /* ---- Type ---- */
+  --font-ui: 'Chakra Petch', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* ---- Spacing scale ---- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-8: 3rem;
+
+  /* ---- Radii (restrained — instrument panels are not pill-shaped) ---- */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* ---- Motion ---- */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-tap: 120ms;
+  --dur-state: 220ms;
+  --dur-layout: 360ms;
+
+  /* ---- Semantic z-index scale ---- */
+  --z-board: 1;
+  --z-hud: 10;
+  --z-itembar: 20;
+  --z-sheet-backdrop: 30;
+  --z-sheet: 40;
+  --z-toast: 50;
+
+  /* ---- Depth-reactive surface (updated per floor by the app) ---- */
+  --depth-tint: 232;
+  --depth-fog: 0;
+}

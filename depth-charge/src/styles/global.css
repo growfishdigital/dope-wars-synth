@@ -1,0 +1,218 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--abyss-0);
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* Depth-reactive vignette: the deeper you go, the more the light closes in. */
+  background:
+    radial-gradient(
+      130% 100% at 50% -10%,
+      oklch(0.24 0.05 var(--depth-tint)) 0%,
+      var(--abyss-0) 55%,
+      oklch(0.09 0.03 var(--depth-tint)) 100%
+    );
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid var(--phosphor);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+::selection {
+  background: var(--phosphor-glow);
+  color: var(--ink);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Screen-reader-only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------- */
+/* Keyframes                                                        */
+/* ---------------------------------------------------------------- */
+
+/* A sonar ping — expanding ring that fades. */
+@keyframes dc-ping {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* A revealed contact settling in. */
+@keyframes dc-reveal {
+  0% {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Hull hit — the whole console jolts. */
+@keyframes dc-jolt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  15% {
+    transform: translate3d(-6px, 3px, 0);
+  }
+  30% {
+    transform: translate3d(6px, -2px, 0);
+  }
+  45% {
+    transform: translate3d(-5px, -3px, 0);
+  }
+  60% {
+    transform: translate3d(4px, 3px, 0);
+  }
+  75% {
+    transform: translate3d(-2px, -1px, 0);
+  }
+}
+
+/* Red alarm flash overlay. */
+@keyframes dc-alarm {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Slow phosphor breathing for idle accents. */
+@keyframes dc-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* The exit hatch beacon. */
+@keyframes dc-beacon {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--phosphor-glow), inset 0 0 12px var(--phosphor-glow);
+  }
+  50% {
+    box-shadow: 0 0 22px 4px var(--phosphor-glow), inset 0 0 18px var(--phosphor-glow);
+  }
+}
+
+/* Toast rise. */
+@keyframes dc-toast-in {
+  0% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Rising bubble for descent transition. */
+@keyframes dc-descend {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh);
+    opacity: 0;
+  }
+}
+
+/* Sweep line for scanning states. */
+@keyframes dc-sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
