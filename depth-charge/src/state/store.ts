@@ -380,6 +380,8 @@ export function reducer(state: AppState, action: Action): AppState {
           armedItem: null,
           flagMode: false,
           toast: null,
+          jolt: 0,
+          alarm: 0,
         },
       };
     }
