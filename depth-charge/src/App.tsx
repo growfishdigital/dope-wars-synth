@@ -4,6 +4,8 @@ import { TitleScreen } from './screens/TitleScreen';
 import { RunScreen } from './screens/RunScreen';
 import { ShopScreen } from './screens/ShopScreen';
 import { GameOverScreen } from './screens/GameOverScreen';
+import { Backdrop } from './components/Backdrop';
+import { Frame } from './components/Frame';
 import { Audio } from './audio/sonar';
 import { floorConfig, METRES_PER_FLOOR } from './engine/config';
 import type { SfxCue } from './engine/types';
@@ -130,14 +132,18 @@ function Game() {
   return (
     <div className="dc-app" onPointerDown={onFirstPointer}>
       <div className="dc-shell">
-        {run.screen === 'title' && (
-          <TitleScreen meta={meta} muted={muted} dispatch={dispatch} />
-        )}
-        {run.screen === 'run' && <RunScreen run={run} dispatch={dispatch} />}
-        {run.screen === 'shop' && <ShopScreen run={run} meta={meta} dispatch={dispatch} />}
-        {run.screen === 'gameover' && (
-          <GameOverScreen run={run} meta={meta} dispatch={dispatch} />
-        )}
+        <Backdrop depth={run.depth} />
+        <div className="dc-stage">
+          {run.screen === 'title' && (
+            <TitleScreen meta={meta} muted={muted} dispatch={dispatch} />
+          )}
+          {run.screen === 'run' && <RunScreen run={run} dispatch={dispatch} />}
+          {run.screen === 'shop' && <ShopScreen run={run} meta={meta} dispatch={dispatch} />}
+          {run.screen === 'gameover' && (
+            <GameOverScreen run={run} meta={meta} dispatch={dispatch} />
+          )}
+        </div>
+        <Frame />
       </div>
     </div>
   );

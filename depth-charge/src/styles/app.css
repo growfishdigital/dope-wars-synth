@@ -1010,3 +1010,232 @@
   border: 1px solid var(--alarm);
   color: var(--ink);
 }
+
+/* ================================================================
+   Console chrome, deep-water atmosphere & sonar scope
+   ================================================================ */
+
+/* Stage sits above the backdrop; screens live inside it. */
+.dc-stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Deep-water backdrop ---- */
+.dc-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.dc-caustics {
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 90%;
+  height: 90%;
+  background: radial-gradient(
+    circle at 50% 30%,
+    oklch(0.5 0.09 185 / 0.1),
+    transparent 60%
+  );
+  filter: blur(24px);
+  animation: dc-caustic-drift 26s ease-in-out infinite alternate;
+}
+.dc-caustics--2 {
+  top: -10%;
+  left: auto;
+  right: -25%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(
+    circle at 50% 30%,
+    oklch(0.45 0.08 200 / 0.08),
+    transparent 60%
+  );
+  animation-duration: 34s;
+  animation-delay: -8s;
+}
+@keyframes dc-caustic-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate3d(8%, 6%, 0) scale(1.15);
+    opacity: 1;
+  }
+}
+
+.dc-snow {
+  position: absolute;
+  inset: 0;
+}
+.dc-flake {
+  position: absolute;
+  left: var(--left);
+  bottom: -12px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--phosphor);
+  opacity: 0;
+  filter: blur(0.4px);
+  animation: dc-rise var(--dur) linear var(--delay) infinite;
+}
+@keyframes dc-rise {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--op);
+  }
+  88% {
+    opacity: var(--op);
+  }
+  100% {
+    transform: translate3d(var(--drift), -100vh, 0);
+    opacity: 0;
+  }
+}
+
+/* Depth-reactive: deeper floors dim the caustics and thin the snow. */
+.dc-backdrop[data-depth='4'] .dc-caustics,
+.dc-backdrop[data-depth='5'] .dc-caustics,
+.dc-backdrop[data-depth='6'] .dc-caustics {
+  opacity: 0.6;
+}
+.dc-backdrop[data-depth='7'] .dc-caustics,
+.dc-backdrop[data-depth='8'] .dc-caustics,
+.dc-backdrop[data-depth='9'] .dc-caustics,
+.dc-backdrop[data-depth='10'] .dc-caustics,
+.dc-backdrop[data-depth='11'] .dc-caustics,
+.dc-backdrop[data-depth='12'] .dc-caustics {
+  opacity: 0.3;
+}
+
+.dc-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at 50% 30%,
+    transparent 55%,
+    oklch(0.05 0.02 240 / 0.55) 100%
+  );
+}
+
+/* ---- Console frame ---- */
+.dc-frame {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-toast);
+  pointer-events: none;
+  border: 1px solid oklch(0.42 0.03 210 / 0.35);
+  box-shadow:
+    inset 0 0 0 1px oklch(0.1 0.02 232 / 0.8),
+    inset 0 1px 0 oklch(0.6 0.05 195 / 0.12),
+    inset 0 -2px 14px oklch(0 0 0 / 0.5);
+}
+@media (min-width: 540px) {
+  .dc-frame {
+    border-radius: 14px;
+  }
+}
+.dc-bolt {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, oklch(0.55 0.03 210), oklch(0.2 0.02 230) 75%);
+  box-shadow: 0 1px 1px oklch(0 0 0 / 0.6), inset 0 0 0 1px oklch(0.12 0.02 230);
+}
+.dc-bolt--tl { top: 9px; left: 9px; }
+.dc-bolt--tr { top: 9px; right: 9px; }
+.dc-bolt--bl { bottom: 9px; left: 9px; }
+.dc-bolt--br { bottom: 9px; right: 9px; }
+.dc-bracket {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--phosphor-dim);
+  opacity: 0.4;
+}
+.dc-bracket--tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
+.dc-bracket--tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
+.dc-bracket--bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
+.dc-bracket--br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+
+/* ---- Sonar scope housing ---- */
+.dc-scope {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dc-graticule {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+.dc-scope .dc-board-scroll {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Title submersible scene ---- */
+.dc-sub-scene {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 260px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+}
+.dc-sub-svg {
+  width: 100%;
+  height: 100%;
+}
+.dc-sub-body {
+  animation: dc-sub-float 6s ease-in-out infinite;
+  transform-origin: 120px 126px;
+}
+@keyframes dc-sub-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(7px) rotate(1deg);
+  }
+}
+.dc-title > *:not(.dc-sub-scene) {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dc-caustics,
+  .dc-flake,
+  .dc-sub-body,
+  .dc-sonar-sweep,
+  .dc-sonar-ring,
+  .dc-sonar-blip {
+    animation: none !important;
+  }
+  .dc-flake {
+    opacity: var(--op);
+  }
+}

@@ -38,6 +38,8 @@ export function TitleScreen({
         {muted ? '🔇' : '🔊'}
       </button>
 
+      <Submersible />
+
       <div className="dc-title-mark" aria-hidden>
         <div className="dc-sonar-emblem">
           <span className="dc-sonar-sweep" />
@@ -123,6 +125,36 @@ export function TitleScreen({
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+/** A submersible descending in a light cone — a faint scene behind the title. */
+function Submersible() {
+  return (
+    <div className="dc-sub-scene" aria-hidden>
+      <svg viewBox="0 0 240 260" className="dc-sub-svg" preserveAspectRatio="xMidYMid meet">
+        {/* light cone from the surface */}
+        <defs>
+          <linearGradient id="dc-sub-cone" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--phosphor)" stopOpacity="0.14" />
+            <stop offset="100%" stopColor="var(--phosphor)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points="120,0 172,240 68,240" fill="url(#dc-sub-cone)" />
+        {/* the pod */}
+        <g className="dc-sub-body">
+          <ellipse cx="120" cy="126" rx="42" ry="24" fill="var(--abyss-3)" stroke="var(--phosphor-dim)" strokeWidth="1.5" />
+          <circle cx="138" cy="126" r="7" fill="var(--phosphor)" opacity="0.9" />
+          <circle cx="138" cy="126" r="12" fill="none" stroke="var(--phosphor-dim)" strokeWidth="1" />
+          {/* conning tower */}
+          <rect x="108" y="100" width="20" height="14" rx="4" fill="var(--abyss-4)" stroke="var(--phosphor-dim)" strokeWidth="1.2" />
+          {/* fins */}
+          <path d="M78 126 L66 116 L70 132 Z" fill="var(--abyss-4)" />
+          {/* propeller wash */}
+          <line x1="78" y1="126" x2="60" y2="126" stroke="var(--phosphor-dim)" strokeWidth="1" strokeDasharray="2 3" opacity="0.6" />
+        </g>
+      </svg>
     </div>
   );
 }
