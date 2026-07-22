@@ -131,23 +131,33 @@ export function applyTransponder(board: Board): void {
   }
 }
 
+export interface DriftResult {
+  moved: boolean;
+  /** Indices of revealed readings whose number changed as a result. */
+  changed: number[];
+}
+
 /**
  * Drifters wander. After a reveal action, each drifter charge may slip to an
  * adjacent hidden, un-flagged, charge-free, non-exit cell. Deterministic given
- * the run seed, depth and action index — no RNG state to persist.
+ * the run seed, depth and action index — no RNG state to persist. Reports which
+ * already-revealed readings changed so the UI can telegraph the disturbance.
  */
 export function driftCharges(
   board: Board,
   seed: string,
   depth: number,
   action: number,
-): boolean {
+): DriftResult {
   const rng = makeRng(seed, depth, action, 'drift');
   let moved = false;
   const drifters: number[] = [];
   for (let i = 0; i < board.cells.length; i++) {
     if (board.cells[i].mine === 3 && !board.cells[i].revealed) drifters.push(i);
   }
+
+  const before = board.cells.map((c) => c.adj);
+
   for (const from of drifters) {
     if (rng() > 0.28) continue; // most turns, they hold
     const targets = neighbors(board, from).filter((n) => {
@@ -160,6 +170,22 @@ export function driftCharges(
     board.cells[from].mine = 0;
     moved = true;
   }
-  if (moved) recomputeAdj(board);
-  return moved;
+
+  const changed: number[] = [];
+  if (moved) {
+    recomputeAdj(board);
+    for (let i = 0; i < board.cells.length; i++) {
+      const c = board.cells[i];
+      if (c.revealed && c.mine === 0 && !c.detonated && !c.exit && c.adj !== before[i]) {
+        c.drifted = true;
+        changed.push(i);
+      }
+    }
+  }
+  return { moved, changed };
+}
+
+/** Clear the transient "just drifted" markers (called when the player next digs). */
+export function clearDrifted(board: Board): void {
+  for (const c of board.cells) c.drifted = false;
 }

@@ -107,6 +107,15 @@ function Game() {
     else Audio.stopAmbient();
   }, [run.screen]);
 
+  // Drift telegraph — a distinct groan whenever a charge relocates.
+  const lastDrift = useRef(0);
+  useEffect(() => {
+    if (run.driftTick !== lastDrift.current) {
+      lastDrift.current = run.driftTick;
+      if (run.driftTick > 0) Audio.drift();
+    }
+  }, [run.driftTick]);
+
   // Game-over sting.
   const wasOver = useRef(false);
   useEffect(() => {
@@ -125,6 +134,14 @@ function Game() {
     document.documentElement.style.setProperty('--depth-tint', String(tint));
     document.documentElement.style.setProperty('--depth-fog', String(fog));
   }, [run.depth]);
+
+  // Dev-only: ?depth=N jumps straight into a floor for QA. Stripped from prod builds.
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const p = new URLSearchParams(location.search).get('depth');
+    if (p) dispatch({ type: 'START_RUN', mode: 'free', seed: 'devseed', startDepth: Number(p) || 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // First user gesture resumes the audio context (autoplay policy).
   const onFirstPointer = () => Audio.resume();

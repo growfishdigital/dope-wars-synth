@@ -13,6 +13,7 @@ function emptyCell(): Cell {
     scanned: false,
     beacon: false,
     defused: false,
+    drifted: false,
   };
 }
 

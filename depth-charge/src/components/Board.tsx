@@ -9,6 +9,8 @@ interface BoardProps {
   /** A secondary action (always flag) — from long-press. */
   onFlag: (idx: number) => void;
   jolt: number;
+  /** Deep floors: render drift-disturbed readings as "?" rather than the new number. */
+  hideDrifted: boolean;
 }
 
 const LONG_PRESS_MS = 340;
@@ -18,7 +20,7 @@ const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function Board({ board, onPrimary, onFlag, jolt }: BoardProps) {
+export function Board({ board, onPrimary, onFlag, jolt, hideDrifted }: BoardProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const gesture = useRef<{
     idx: number;
@@ -108,8 +110,17 @@ export function Board({ board, onPrimary, onFlag, jolt }: BoardProps) {
   }, []);
 
   const cells = useMemo(
-    () => board.cells.map((c, i) => <Cell key={i} idx={i} view={cellView(c)} adj={c.adj} />),
-    [board.cells],
+    () =>
+      board.cells.map((c, i) => (
+        <Cell
+          key={i}
+          idx={i}
+          view={cellView(c, hideDrifted)}
+          adj={c.adj}
+          drifted={c.revealed && c.drifted}
+        />
+      )),
+    [board.cells, hideDrifted],
   );
 
   return (

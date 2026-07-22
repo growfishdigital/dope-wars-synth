@@ -24,6 +24,8 @@ export interface Cell {
   beacon: boolean;
   /** Cleanly defused charge (shown distinct from a detonation). */
   defused: boolean;
+  /** This revealed reading was just changed by a drifting charge (telegraph). */
+  drifted: boolean;
 }
 
 export interface Board {
@@ -135,6 +137,8 @@ export interface RunState {
   floorSalvage: number;
   jolt: number;
   alarm: number;
+  /** Bumped whenever a drifting charge relocates, to fire the telegraph. */
+  driftTick: number;
   toast: Toast | null;
   sfx: SfxCue | null;
   over: { depth: number; salvage: number; cause: string } | null;

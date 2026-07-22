@@ -17,6 +17,7 @@ import {
   applyDefuser,
   applyTransponder,
   driftCharges,
+  clearDrifted,
 } from '../engine/reveal';
 import { makeRng } from '../engine/rng';
 import {
@@ -41,14 +42,15 @@ function freshPurchases(): Record<ItemId, number> {
   return { patch: 0, sonar: 0, plating: 0, defuser: 0, transponder: 0, ballast: 0 };
 }
 
-function makeRun(mode: RunMode, seed: string): RunState {
-  const cfg = floorConfig(1);
+function makeRun(mode: RunMode, seed: string, startDepth = 1): RunState {
+  const depth = Math.max(1, Math.floor(startDepth));
+  const cfg = floorConfig(depth);
   return {
     screen: 'run',
     mode,
     seed,
     actions: 0,
-    depth: 1,
+    depth,
     hp: START_HP,
     maxHp: START_HP,
     salvage: 0,
@@ -64,6 +66,7 @@ function makeRun(mode: RunMode, seed: string): RunState {
     floorSalvage: 0,
     jolt: 0,
     alarm: 0,
+    driftTick: 0,
     toast: null,
     sfx: null,
     over: null,
@@ -98,6 +101,9 @@ function applyResult(
   res: RevealResult,
 ): AppState {
   run.actions += 1;
+
+  // A fresh dig re-locks the sonar: clear the previous drift's markers.
+  clearDrifted(board);
 
   // Salvage from safe reveals, scaled by streak.
   const gained = salvageForReveal(res.revealed.length, run.streak + (res.hits.length ? 0 : 1));
@@ -153,7 +159,15 @@ function applyResult(
   // Drifters wander after the action settles (if the floor has any, and we live).
   if (run.hp > 0) {
     const cfg = floorConfig(run.depth);
-    if (cfg.drifters > 0) driftCharges(board, run.seed, run.depth, run.actions);
+    if (cfg.drifters > 0) {
+      const drift = driftCharges(board, run.seed, run.depth, run.actions);
+      if (drift.changed.length > 0) {
+        run.driftTick += 1;
+        if (!run.toast) {
+          toast(run, '◇ Contact drifting — readings shifted', 'bad');
+        }
+      }
+    }
   }
 
   run.board = board;
@@ -186,7 +200,7 @@ function endRun(state: AppState, run: RunState, cause: string): AppState {
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'START_RUN': {
-      return { ...state, run: makeRun(action.mode, action.seed) };
+      return { ...state, run: makeRun(action.mode, action.seed, action.startDepth) };
     }
 
     case 'GO_TITLE': {

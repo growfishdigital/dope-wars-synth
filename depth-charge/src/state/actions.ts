@@ -7,7 +7,7 @@ export interface AppState {
 }
 
 export type Action =
-  | { type: 'START_RUN'; mode: RunMode; seed: string }
+  | { type: 'START_RUN'; mode: RunMode; seed: string; startDepth?: number }
   | { type: 'GO_TITLE' }
   | { type: 'REVEAL'; idx: number }
   | { type: 'FLAG'; idx: number }

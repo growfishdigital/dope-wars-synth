@@ -121,7 +121,13 @@ export function TitleScreen({
           </p>
           <p>
             Spend salvage at the <b>supply station</b> between floors. Deeper trenches hide
-            volatile charges and drifting contacts that will not sit still.
+            <b> volatile charges</b> (double damage) and <b>drifting contacts</b> that relocate
+            as you dig.
+          </p>
+          <p>
+            When a contact drifts you'll hear it and see the affected readings <b>pulse</b> —
+            re-check them. Past depth 8 a disturbed reading goes dark as{' '}
+            <b className="mono">?</b> until your next ping re-locks it.
           </p>
         </div>
       )}

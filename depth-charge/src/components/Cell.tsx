@@ -9,15 +9,18 @@ export type CellView =
   | 'flag'
   | 'empty'
   | 'number'
+  | 'stale' // reading disturbed by a drifter, shown as "?"
   | 'exit'
   | 'detonated'
   | 'defused';
 
-export function cellView(c: CellData): CellView {
+/** `hideDrifted` (deep floors) renders a just-disturbed reading as "?" instead of its number. */
+export function cellView(c: CellData, hideDrifted = false): CellView {
   if (c.revealed) {
     if (c.detonated) return 'detonated';
     if (c.defused) return 'defused';
     if (c.exit) return 'exit';
+    if (hideDrifted && c.drifted) return 'stale';
     return c.adj > 0 ? 'number' : 'empty';
   }
   if (c.flagged) return 'flag';
@@ -30,11 +33,14 @@ interface CellProps {
   idx: number;
   view: CellView;
   adj: number;
+  /** Reading just changed from a drift — pulse to draw the eye. */
+  drifted?: boolean;
 }
 
-function CellImpl({ idx, view, adj }: CellProps) {
+function CellImpl({ idx, view, adj, drifted }: CellProps) {
   let content: React.ReactNode = null;
   if (view === 'number') content = <span className="mono">{adj}</span>;
+  else if (view === 'stale') content = <span className="mono dc-stale-mark">?</span>;
   else if (view === 'flag') content = <span className="dc-flag-mark" aria-hidden />;
   else if (view === 'exit') content = <span className="dc-exit-mark" aria-hidden>◈</span>;
   else if (view === 'detonated') content = <span className="dc-boom-mark" aria-hidden>✳</span>;
@@ -45,7 +51,7 @@ function CellImpl({ idx, view, adj }: CellProps) {
 
   return (
     <div
-      className={`dc-cell dc-cell--${view}`}
+      className={`dc-cell dc-cell--${view}${drifted ? ' dc-cell--drifted' : ''}`}
       data-idx={idx}
       data-n={view === 'number' ? adj : undefined}
       role="gridcell"
@@ -69,6 +75,8 @@ function ariaLabel(view: CellView, adj: number): string {
       return 'clear';
     case 'number':
       return `${adj} nearby`;
+    case 'stale':
+      return 'reading disturbed';
     case 'exit':
       return 'exit hatch';
     case 'detonated':

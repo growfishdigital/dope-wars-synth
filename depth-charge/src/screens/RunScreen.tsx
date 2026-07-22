@@ -5,6 +5,7 @@ import { Board } from '../components/Board';
 import { Hud } from '../components/Hud';
 import { ItemBar } from '../components/ItemBar';
 import { Toast } from '../components/Toast';
+import { DRIFT_UNKNOWN_DEPTH } from '../engine/config';
 
 export function RunScreen({
   run,
@@ -42,7 +43,13 @@ export function RunScreen({
       <Hud run={run} />
       <div className="dc-scope">
         <Graticule />
-        <Board board={run.board} onPrimary={onPrimary} onFlag={onFlag} jolt={run.jolt} />
+        <Board
+          board={run.board}
+          onPrimary={onPrimary}
+          onFlag={onFlag}
+          jolt={run.jolt}
+          hideDrifted={run.depth >= DRIFT_UNKNOWN_DEPTH}
+        />
       </div>
       {run.alarm > 0 && <div className="dc-alarm-flash" key={`alarm-${run.alarm}`} aria-hidden />}
       <ItemBar run={run} dispatch={dispatch} />

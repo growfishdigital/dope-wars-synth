@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { makeBoard, armBoard, neighbors, openingRegion, cloneBoard } from './board';
-import { revealCell, chord, toggleFlag, applyDefuser, driftCharges } from './reveal';
+import { revealCell, chord, toggleFlag, applyDefuser, driftCharges, clearDrifted } from './reveal';
 import { floorConfig } from './config';
 import { makeRng, hashSeed, mulberry32 } from './rng';
 import type { Board } from './types';
@@ -217,5 +217,24 @@ describe('drifters', () => {
     driftCharges(a, a.seed, 7, 5);
     driftCharges(b, b.seed, 7, 5);
     expect(a.cells.map((c) => c.mine)).toEqual(b.cells.map((c) => c.mine));
+  });
+
+  it('reports changed readings only on revealed, charge-free cells, and clears cleanly', () => {
+    const board = armedBoard('driftreport', 7, 0);
+    revealCell(board, 0);
+    for (let action = 1; action <= 50; action++) {
+      const res = driftCharges(board, board.seed, 7, action);
+      // Every reported change is a revealed, non-mine cell now flagged as drifted.
+      for (const idx of res.changed) {
+        const c = board.cells[idx];
+        expect(c.revealed).toBe(true);
+        expect(c.mine).toBe(0);
+        expect(c.drifted).toBe(true);
+      }
+      // No move → no reported changes.
+      if (!res.moved) expect(res.changed.length).toBe(0);
+      clearDrifted(board);
+      expect(board.cells.some((c) => c.drifted)).toBe(false);
+    }
   });
 });

@@ -3,6 +3,8 @@ import type { FloorConfig, ItemDef, ItemId, Meta } from './types';
 export const START_HP = 3;
 export const MAX_HP_CAP = 6;
 export const METRES_PER_FLOOR = 120;
+/** At or below this depth a drift shows the new number; deeper, it shows "?". */
+export const DRIFT_UNKNOWN_DEPTH = 8;
 
 /**
  * Floor tuning. Hand-authored for depths 1–8, formula-driven beyond.

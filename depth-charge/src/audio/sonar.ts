@@ -180,6 +180,14 @@ class SonarAudio {
     this.noise(1.0, 0.12, 600, 60);
   }
 
+  /** A drifting contact — an uneasy, detuned sonar groan that slides downward. */
+  drift() {
+    this.tone(360, 0.5, 'sine', 0.11, { slideTo: 190, toEcho: true });
+    this.tone(354, 0.5, 'sine', 0.09, { slideTo: 184 }); // detuned partner → beating
+    this.tone(352, 0.55, 'triangle', 0.06, { slideTo: 150, delay: 0.04 });
+    this.noise(0.35, 0.07, 500, 90);
+  }
+
   gameover() {
     [330, 262, 196, 131].forEach((f, i) =>
       this.tone(f, 0.5, 'sawtooth', 0.13, { delay: i * 0.22, toEcho: true }),
